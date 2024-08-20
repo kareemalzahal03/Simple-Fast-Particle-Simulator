@@ -47,3 +47,5 @@ _deps
 build/
 .vs/
 CMakeSettings.json
+.DS_Store
+.vscode
