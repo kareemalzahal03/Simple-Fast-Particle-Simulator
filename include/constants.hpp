@@ -6,14 +6,14 @@
 
 const int WIDTH = 1450;
 const int HEIGHT = 900;
-const int MAX_FRAME_RATE = 1000;
+const int MAX_FRAME_RATE = 60;
 const sf::Time FPS_REFRESH_RATE = sf::seconds(1.0f);
 
 // SIMULATOR
 
 const int PARTICLE_RADIUS = 6;
 
-const float VISCOSITY = 0.75;
+const float VISCOSITY = 1;
 
 const int particleSpawn = 1500;
 const float smoothingRadius = 50;
