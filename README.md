@@ -1,78 +1,48 @@
-# SFML Project Template
+# Simple Fast Particle Sim
 
-A cross-platform template for C++ SFML projects using cmake
+![Using SFML](https://img.shields.io/badge/using-SFML-green)
+![version](https://img.shields.io/badge/version-0.1.0-orange)
+![GitHub top language](https://img.shields.io/github/languages/top/kareemalzahal03/Simple-Fast-Particle-Sim)
 
-## How to use?
+The Simple Fast Particle Simulator is a high-performance C++ application built using the SFML (Simple and Fast Multimedia Library). Designed to simulate fluid dynamics, this project focuses on creating realistic particle behaviors, including density, pressure, and viscosity, to mimic the properties of water. Users can interact with the simulation by clicking and dragging with the mouse, observing real-time fluid behavior. With parallelization implemented for enhanced speed, this simulator is both powerful and efficient. The use of SFML and CMake ensures that the project is cross-platform, making it accessible for contributors on any system.
 
-### Clone
+## Clone, Build, Run, Contribute
 
-There are two ways to use this project template. You can either create a your own GitHub repo using this template (very similar to forking) or your can directly clone this repo on your local machine. Here are steps for both these ways:
+This project uses a simple cross-platform build template using CMake for anyone to easily run and contribute.
 
-1. GitHub repo using template
+1. Install [Git](https://github.com/git-guides/install-git) and [CMake](https://cmake.org/download/). Use your system's package manager if available.
 
-    - Make sure you are logged into your GitHub account.
-
-    - Click on the "Use this template" button.
-
-        ![Step2](readme-assets/use-this-template-button.png)
-
-    - Provide a name for your new repo.
-
-    - Click "Create repositoy from template".
-
-    - Clone your new repo recursively.
+2. Clone this repo recusrively using this command:
 
     ```bash
-    git clone --recursive <your-repo-link-here>
-    ```
-
-2. Local repo by direcly cloning
-
-    Step 1. Clone this repo recusrively using this command:
-
-    ```bash
-    git clone --recursive https://github.com/ufrshubham/sfml-project-template.git
+    git clone --recursive https://github.com/kareemalzahal03/Simple-Fast-Particle-Sim.git
     ```
 
 Note: If you've already cloned this repo without using `--recursive` flag, just run `git submodule update --init` to update the submodules.
 
-### Code
-
-- Source files should be placed under `src` directory.
-
-- Header files should be placed under `include` directory. Header `Version.hpp` can be remove completely as it is just for demo.
-
-- Source code for SFML is pulled as a submodule under `vendors/sfml` and is built along with your code.
-
-- Assets like images, audio and fonts can be placed under `resources` directory. If you choose to use a custom directory for this, you'll have to handle how your executable finds those assets. The demo code in `src/main.cpp` programitically changes the working directory to the path where `resources` directory is located (see function `modifyCurrentWorkingDirectory()`).
-
-### Build
-
-- Make a directory for build in your project root.
+3. Change directory to project root and make a build folder
 
     ```bash
     cmake -E make_directory ./build
     ```
 
-- Go to the build directory.
+4. Generate project files (For debug builds, replace `Release` with `Debug`).
 
     ```bash
-    cd build/
+    cmake -B build -DCMAKE_BUILD_TYPE=Release
     ```
 
-- Generate project files (For debug builds, replace `Release` with `Debug`).
+5. Build (For debug builds, replace `Release` with `Debug`).
 
     ```bash
-    cmake .. -DCMAKE_BUILD_TYPE=Release
+    cmake --build build --config Release
     ```
 
-- Build (For debug builds, replace `Release` with `Debug`).
+6. Run program. You should find the executables under `build/bin`.
 
     ```bash
-    cmake --build . --config Release
+    ./build/bin/particle_sim
     ```
-
-- You should find the executables under `build/bin`
 
 ## License
 
@@ -81,3 +51,9 @@ This project is released under MIT license. See [LICENSE.md](LICENSE.md) for det
 - [sfml](vendors/sfml/) is covered under [Zlib](vendors/sfml/license.md) license.
 
 - [FiraCode-Regular.ttf](resourcs/FiraCode-Regular.ttf) is covered under [OFL-1.1](https://github.com/tonsky/FiraCode/blob/master/LICENSE) license.
+
+## Special Thanks
+
+[ufrshubham (aka DevKage)](https://github.com/ufrshubham):
+
+For the cross-platform [template](https://github.com/ufrshubham/sfml-project-template) for C++ SFML projects using CMake
