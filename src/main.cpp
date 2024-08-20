@@ -1,84 +1,154 @@
-#include <SFML/Graphics.hpp>
-#include <filesystem>
+#include <condition_variable>
 #include <iostream>
-#include "Version.hpp"
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+#include <functional>
 
-static void modifyCurrentWorkingDirectory();
-static void setupVersionTexts(sf::RenderWindow &window, sf::Font &font, sf::Text &templateVersion, sf::Text &sfmlVersion);
+class Parallelize { 
+public:
 
-int main()
-{
-    modifyCurrentWorkingDirectory();
+    Parallelize (
+        int threadCount = std::thread::hardware_concurrency())
+        : threadCount(threadCount), stopped(false), isThreadComplete(threadCount, true) {
 
-    const auto clearColor = sf::Color(234, 240, 206);
-    auto title = "Template-" + GetTemplateVersion() + "/SFML-" + GetSFMLVersion();
-    sf::RenderWindow window(sf::VideoMode(640, 360), title, sf::Style::Close);
-
-    sf::Font font;
-    sf::Text sfmlVersion;
-    sf::Text templateVersion;
-
-    if (font.loadFromFile("resources/FiraCode-Regular.ttf"))
-    {
-        setupVersionTexts(window, font, templateVersion, sfmlVersion);
+        for (int i = 0; i < threadCount; ++i) {
+            threads.emplace_back([this, i] { this->threadLoop(i); });
+        }
     }
 
-    while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
+    ~Parallelize() {
         {
-            if (event.type == sf::Event::Closed)
-            {
-                window.close();
+            std::unique_lock<std::mutex> lock(m);
+            stopped = true;
+        }
+        cv.notify_all();
+        for (std::thread& t : threads) t.join();
+    }
+
+    template <typename Func>
+    void operator() (Func f) {
+        func = f;
+        runThreads();
+    }
+
+    template <typename Iterable, typename Function>
+    void for_each(Iterable& iterable, Function f) {
+
+        func = [&] (int threadIndex, int threadCount) {
+
+            auto begin = iterable.begin();
+            auto end = iterable.end();
+
+            for (int x = threadIndex; x and begin != end; --x)
+                ++begin;
+
+            while (begin != end) {
+                f(*begin);
+
+                for (int x = threadCount; x and begin != end; --x)
+                    ++begin;
             }
+        };
+
+        runThreads();
+    }
+
+private:
+
+    void threadLoop(int threadIndex) {
+        while (true) {
+
+            // Wait until func called
+            std::unique_lock<std::mutex> lock(m);
+            cv.wait(lock, [this, threadIndex] 
+                { return !isThreadComplete[threadIndex] or stopped; });
+            if (stopped) return;
+            lock.unlock();
+
+            // Call Func
+            if (func) func(threadIndex, threadCount);
+
+            // Notify main thread when done
+            lock.lock();
+            allThreadsComplete = (threadCount == ++threadsCompletedCount);
+            isThreadComplete[threadIndex] = true;
+            cv.notify_all();
+        }
+    }
+
+    void runThreads() {
+
+        // Notify all threads to run func
+        {
+            std::lock_guard<std::mutex> lock(m);
+            for (int i = 0; i < threadCount; ++i) { isThreadComplete[i] = false; }
+            threadsCompletedCount = 0;
+            allThreadsComplete = false;
+            
         }
 
-        window.clear(clearColor);
-        window.draw(templateVersion);
-        window.draw(sfmlVersion);
-        window.display();
+        cv.notify_all();
+
+        // Wait for all threads to complete
+        {
+            std::unique_lock<std::mutex> lock(m);
+            cv.wait(lock, [this] { return allThreadsComplete; });
+        }
     }
+
+    std::function<void(int,int)> func;
+    bool stopped;
+    std::mutex m;
+    std::condition_variable cv;
+    bool allThreadsComplete;
+    const int threadCount;
+    int threadsCompletedCount;
+    std::vector<std::thread> threads;
+    std::vector<bool> isThreadComplete;
+};
+
+int main() {
+    Parallelize parallelize(5);
+
+    std::cout << "Launching threads..." << std::endl;
+
+    parallelize([] (int threadIndex, int threadCount) {
+
+        // Simulate work being done
+        std::this_thread::sleep_for(std::chrono::seconds(threadIndex/2));
+        std::cout << "Thread " + std::to_string(threadIndex) + " has completed.\n";
+    });
+
+    std::cout << "All threads have completed their tasks.\n";
 
     return 0;
 }
 
-void setupVersionTexts(sf::RenderWindow &window, sf::Font &font, sf::Text &templateVersion, sf::Text &sfmlVersion)
-{
-    auto windowCenter = sf::Vector2f(window.getSize().x * 0.5f, window.getSize().y * 0.5f);
-    const auto characterSize = 65;
-    const auto outlineThickness = 4.f;
-    const auto fillColor = sf::Color(63, 51, 77);
-    const auto outlineColor = sf::Color(192, 197, 193);
+// int main() {
 
-    templateVersion.setFont(font);
-    templateVersion.setString("Template-v" + GetTemplateVersion());
-    templateVersion.setCharacterSize(characterSize);
-    templateVersion.setFillColor(fillColor);
-    templateVersion.setOutlineColor(outlineColor);
-    templateVersion.setOutlineThickness(outlineThickness);
+//     Parallelize parallelize;
+//     std::vector<int> myvector(1000000, 0);
 
-    auto textRect = templateVersion.getLocalBounds();
-    templateVersion.setOrigin(textRect.left + textRect.width * 0.5f, textRect.top + textRect.height * 0.5f);
-    templateVersion.setPosition(windowCenter - sf::Vector2f(0.f, textRect.height));
+//     using namespace std::chrono_literals; 
+//     const auto start = std::chrono::high_resolution_clock::now();
 
-    sfmlVersion.setFont(font);
-    sfmlVersion.setString("SFML-v" + GetSFMLVersion());
-    sfmlVersion.setCharacterSize(characterSize);
-    sfmlVersion.setFillColor(fillColor);
-    sfmlVersion.setOutlineColor(outlineColor);
-    sfmlVersion.setOutlineThickness(outlineThickness);
+//     // parallelize.for_each(myvector,[](int& i){
+//     //     i += 3;
+//     // });
 
-    textRect = sfmlVersion.getLocalBounds();
-    sfmlVersion.setOrigin(textRect.left + textRect.width * 0.5f, textRect.top + textRect.height * 0.5f);
-    sfmlVersion.setPosition(windowCenter + sf::Vector2f(0.f, textRect.height));
-}
+//     for (int x = 0; x < myvector.size(); ++x) {
+//         myvector[x] += 3;
+//     }
 
-void modifyCurrentWorkingDirectory()
-{
-    while (!std::filesystem::exists("resources"))
-    {
-        std::filesystem::current_path(std::filesystem::current_path().parent_path());
-    }
-    auto cwd = std::filesystem::current_path();
-}
+//     // for (int& i : myvector) {
+//     //     i += 3;
+//     // }
+
+//     const auto end = std::chrono::high_resolution_clock::now();
+//     const std::chrono::duration<double, std::milli> elapsed = end - start;
+//     std::cout << "Waited " << elapsed.count() << " seconds." << '\n';
+
+//     return 0;
+// }
