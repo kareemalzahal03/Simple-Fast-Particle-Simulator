@@ -41,13 +41,13 @@ public:
             auto begin = iterable.begin();
             auto end = iterable.end();
 
-            for (int x = threadIndex; x and begin != end; --x)
+            for (int x = threadIndex; x && begin != end; --x)
                 ++begin;
 
             while (begin != end) {
                 f(*begin);
 
-                for (int x = threadCount; x and begin != end; --x)
+                for (int x = threadCount; x && begin != end; --x)
                     ++begin;
             }
         };
@@ -63,7 +63,7 @@ private:
             // Wait until func called
             std::unique_lock<std::mutex> lock(m);
             cv.wait(lock, [this, threadIndex] 
-                { return !isThreadComplete[threadIndex] or stopped; });
+                { return !isThreadComplete[threadIndex] || stopped; });
             if (stopped) return;
             lock.unlock();
 
