@@ -49,3 +49,4 @@ build/
 CMakeSettings.json
 .DS_Store
 .vscode
+depreciated/
