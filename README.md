@@ -2,7 +2,7 @@
 
 ![Using SFML](https://img.shields.io/badge/using-SFML-green)
 ![version](https://img.shields.io/badge/version-0.1.0-orange)
-![GitHub top language](https://img.shields.io/github/languages/top/kareemalzahal03/Simple-Fast-Particle-Sim)
+![GitHub top language](https://img.shields.io/github/languages/top/kareemalzahal03/Simple-Fast-Particle-Simulator)
 
 The Simple Fast Particle Simulator is a high-performance C++ application built using the SFML (Simple and Fast Multimedia Library). Designed to simulate fluid dynamics, this project focuses on creating realistic particle behaviors, including density, pressure, and viscosity, to mimic the properties of water. Users can interact with the simulation by clicking and dragging with the mouse, observing real-time fluid behavior. With parallelization implemented for enhanced speed, this simulator is both powerful and efficient. The use of SFML and CMake ensures that the project is cross-platform, making it accessible for contributors on any system.
 
