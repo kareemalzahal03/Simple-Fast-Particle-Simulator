@@ -8,11 +8,11 @@ The Simple Fast Particle Simulator is a high-performance C++ application built u
 
 ## Build, Run, Contribute
 
-This project uses a simple cross-platform build template using CMake for anyone to easily run and contribute.
+This project uses a cross-platform CMake template so anyone can easily build and contribute.
 
 1. Install [Git](https://github.com/git-guides/install-git) and [CMake](https://cmake.org/download/). Use your system's package manager if available.
 
-2. Clone this repo recusrively using this command:
+2. Clone this repo recusrively:
 
 ```bash
 git clone --recursive https://github.com/kareemalzahal03/Simple-Fast-Particle-Simulator.git
@@ -20,26 +20,31 @@ git clone --recursive https://github.com/kareemalzahal03/Simple-Fast-Particle-Si
 
 Note: If you've already cloned this repo without using `--recursive` flag, just run `git submodule update --init` to update the submodules.
 
-3. Change directory to project root and make a build folder
+3. Change directory to project root:
 
 ```bash
 cd Simple-Fast-Particle-Simulator/
+```
+
+4. Add a CMake build directory:
+
+```bash
 cmake -E make_directory ./build
 ```
 
-4. Generate project files (For debug builds, replace `Release` with `Debug`).
+5. Generate project files: (For debug builds, replace `Release` with `Debug`)
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 ```
 
-5. Build (For debug builds, replace `Release` with `Debug`).
+6. Build project: (For debug builds, replace `Release` with `Debug`)
 
 ```bash
 cmake --build build --config Release
 ```
 
-6. Run program. You should find the executables under `build/bin`.
+7. Run program: (You should find the executable under `build/bin`)
 
 ```bash
 ./build/bin/particle_sim
