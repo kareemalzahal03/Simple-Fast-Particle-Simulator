@@ -6,6 +6,18 @@
 
 The Simple Fast Particle Simulator is a high-performance C++ application built using the SFML (Simple and Fast Multimedia Library). Designed to simulate fluid dynamics, this project focuses on creating realistic particle behaviors, including density, pressure, and viscosity, to mimic the properties of water. Users can interact with the simulation by clicking and dragging with the mouse, observing real-time fluid behavior. With parallelization implemented for enhanced speed, this simulator is both powerful and efficient. The use of SFML and CMake ensures that the project is cross-platform, making it accessible for contributors on any system.
 
+## How to use
+
+<table>
+  <tr>
+    <td width=400>
+      Left click and drag the mouse on the window to repell or attract nearby particles. To toggle between attract (green) and repell (red), right click. To enable debug mode, press the D key. FPS is shown on the top left of the screen. 
+      <br><br>To change the behaviour of the particles, edit the 'constants.h' file to edit variables that the simulator uses.
+    </td>
+    <td><img src="resources/img1.png" alt="Simple Fast Particle Simulator" width="400"/></td>
+  </tr>
+</table>
+
 ## Build, Run, Contribute
 
 This project uses a cross-platform CMake template so anyone can easily build and contribute.
