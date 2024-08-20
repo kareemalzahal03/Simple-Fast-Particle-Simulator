@@ -1,4 +1,4 @@
-# Simple Fast Particle Sim
+# Simple Fast Particle Simulator
 
 ![Using SFML](https://img.shields.io/badge/using-SFML-green)
 ![version](https://img.shields.io/badge/version-0.1.0-orange)
@@ -15,7 +15,7 @@ This project uses a simple cross-platform build template using CMake for anyone 
 2. Clone this repo recusrively using this command:
 
     ```bash
-    git clone --recursive https://github.com/kareemalzahal03/Simple-Fast-Particle-Sim.git
+    git clone --recursive https://github.com/kareemalzahal03/Simple-Fast-Particle-Simulator.git
     ```
 
 Note: If you've already cloned this repo without using `--recursive` flag, just run `git submodule update --init` to update the submodules.
@@ -23,6 +23,7 @@ Note: If you've already cloned this repo without using `--recursive` flag, just 
 3. Change directory to project root and make a build folder
 
     ```bash
+    cd Simple-Fast-Particle-Simulator/
     cmake -E make_directory ./build
     ```
 
