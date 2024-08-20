@@ -17,7 +17,7 @@ float CosKernel(float dst, float radius) {
 
     float x = radius - dst;
 
-    return 0.5 * (std::cos((x/radius)*M_PI) + 1);
+    return 0.5 * (std::cos((x/radius)*3.1415926) + 1);
 }
 
 float SpikyKernelPow2(float dst) {
