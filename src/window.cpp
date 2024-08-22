@@ -2,19 +2,15 @@
 #include "window.hpp"
 #include <filesystem>
 
-static void modifyCurrentWorkingDirectory() {
+Window::Window(uint width, uint height, const sf::String title) 
+: sf::RenderWindow(sf::VideoMode(width, height), title, sf::Style::Close) {
+
     // For cross platform use
     while (!std::filesystem::exists("resources"))
     {
         std::filesystem::current_path(std::filesystem::current_path().parent_path());
     }
     auto cwd = std::filesystem::current_path();
-}
-
-Window::Window(uint width, uint height, const sf::String title) 
-: sf::RenderWindow(sf::VideoMode(width, height), title, sf::Style::Close) {
-
-    modifyCurrentWorkingDirectory();
 
     fpsTextFont.loadFromFile("resources/FiraCode-Regular.ttf");
     fpsText.setFont(fpsTextFont);
