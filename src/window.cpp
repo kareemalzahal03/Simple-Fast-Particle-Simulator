@@ -2,7 +2,7 @@
 #include "window.hpp"
 #include <filesystem>
 
-Window::Window(uint width, uint height, const sf::String title) 
+Window::Window(int width, int height, const sf::String title) 
 : sf::RenderWindow(sf::VideoMode(width, height), title, sf::Style::Close) {
 
     // For cross platform use

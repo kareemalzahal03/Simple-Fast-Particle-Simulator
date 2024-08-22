@@ -9,7 +9,7 @@ class Window : public sf::RenderWindow {
 public:
 
     // Constructor
-    Window(uint width, uint height, const sf::String title);
+    Window(int width, int height, const sf::String title);
 
     // To be called every iteration, returns time difference in seconds
     // between time last executed and updates the FPS text.
