@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "constants.hpp"
+#include "config.hpp"
 #include <cmath>
 
 sf::Color colorBlend(sf::Color c1, sf::Color c2, float blendRatio) {
@@ -10,7 +10,6 @@ sf::Color colorBlend(sf::Color c1, sf::Color c2, float blendRatio) {
     (c1.b*(1-blendRatio))+(c2.b*blendRatio));
 }
 
-
 float CosKernel(float dst, float radius) {
 
     if (dst > radius) { return 0; }
@@ -20,29 +19,28 @@ float CosKernel(float dst, float radius) {
     return 0.5 * (std::cos((x/radius)*3.1415926) + 1);
 }
 
-float SpikyKernelPow2(float dst) {
+float SpikyKernelPow2(float dst, float radius) {
 
-    if (dst > smoothingRadius) { return 0; }
+    if (dst > radius) { return 0; }
 
-    float v = (smoothingRadius - dst);
+    float v = (radius - dst);
 
-    // return v * v * SpikyPow2ScalingFactor;
-    return (v*v)/((smoothingRadius)*(smoothingRadius));
+    return (v*v)/((radius)*(radius));
 }
 
-float DerivativeSpikyPow2(float dst) {
+float DerivativeSpikyPow2(float dst, float radius) {
 
-    if (dst > smoothingRadius) { return 0; }
+    if (dst > radius) { return 0; }
 
-    float v = (smoothingRadius - dst);
+    float v = (radius - dst);
 
-    // return v * SpikyPow2DerivativeScalingFactor;
-    return - 2 * v / ((smoothingRadius)*(smoothingRadius));
+    return - 2 * v / ((radius)*(radius));
 }
 
 float DensityToPressure(float density) {
+    Config& config = Config::get();
 
-    return (density - targetDensity) * pressureMultiplier;
+    return (density - config.targetdensity()) * config.pressure();
 }
 
 float SharedPressure(float density1, float density2) {

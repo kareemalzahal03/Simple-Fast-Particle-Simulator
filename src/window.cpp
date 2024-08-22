@@ -11,8 +11,8 @@ static void modifyCurrentWorkingDirectory() {
     auto cwd = std::filesystem::current_path();
 }
 
-Window::Window(const sf::String& title) 
-: sf::RenderWindow(sf::VideoMode(WIDTH, HEIGHT), title, sf::Style::Close) {
+Window::Window(uint width, uint height, const sf::String title) 
+: sf::RenderWindow(sf::VideoMode(width, height), title, sf::Style::Close) {
 
     modifyCurrentWorkingDirectory();
 
@@ -23,13 +23,13 @@ Window::Window(const sf::String& title)
     fpsText.setOutlineThickness(0.5);
     fpsText.setFillColor(sf::Color::Green);
 
-    this->setFramerateLimit(MAX_FRAME_RATE);
+    this->setFramerateLimit(60);
     this->setVerticalSyncEnabled(false);
 }
 
 float Window::calculateDelta() {
 
-    if (refreshClock.getElapsedTime() >= FPS_REFRESH_RATE) {
+    if (refreshClock.getElapsedTime() >= sf::seconds(1)) {
 
         fpsText.setString(std::to_string(static_cast<int>(
         frames/refreshClock.restart().asSeconds())));

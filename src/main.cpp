@@ -12,9 +12,12 @@
 #include <iostream>
 
 int main() {
-    
-    Window window("Particle Simulator");
-    ParticleSimulator particlesim;
+    const int width = 1450;
+    const int height = 900;
+    const int smradius = 50;
+
+    Window window(width, height, "Particle Simulator");
+    ParticleSimulator particlesim(width,height,smradius);
     bool debug = false;
 
     while (window.isOpen()) {

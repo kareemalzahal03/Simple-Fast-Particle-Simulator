@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-#include "constants.hpp"
+#include "config.hpp"
 
 // An abstraction of the SFML window class, with added functionality for
 // calculating, capping, and displaying FPS.
@@ -9,7 +9,7 @@ class Window : public sf::RenderWindow {
 public:
 
     // Constructor
-    Window(const sf::String& title);
+    Window(uint width, uint height, const sf::String title);
 
     // To be called every iteration, returns time difference in seconds
     // between time last executed and updates the FPS text.

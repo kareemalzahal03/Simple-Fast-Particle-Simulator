@@ -9,6 +9,5 @@ public:
     sf::Vector2f velocity;
     float density;
 
-    Particle();
-    void moveParticle(float delta);
+    Particle(sf::Vector2f pos);
 };

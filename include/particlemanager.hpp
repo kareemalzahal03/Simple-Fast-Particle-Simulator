@@ -1,6 +1,6 @@
 #pragma once
 #include "particle.hpp"
-#include "constants.hpp"
+#include "config.hpp"
 #include <vector>
 #include <list>
 
@@ -8,7 +8,7 @@ class ParticleManager {
 friend class ParticleIterator;
 public:
 
-    ParticleManager();
+    ParticleManager(int width, int height, int smradius);
     void addParticle(Particle particle);
     void sortParticles();
 

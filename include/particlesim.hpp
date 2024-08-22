@@ -8,7 +8,7 @@
 class ParticleSimulator {
 public:
 
-    ParticleSimulator();
+    ParticleSimulator(int width, int height, int smradius);
 
     void simStep(float delta);
 
@@ -23,9 +23,20 @@ private:
     void calculateParticleForces();
 
     void moveParticles(float delta);
+    void moveParticle(Particle& particle, float delta);
 
     ParticleManager pm;
     Parallelize parallelize;
+    // Config& config = Config::get();
+    const int spawn = 1500;
+    const int circleradius = 100;
+    const sf::Color defaultColor = sf::Color::Cyan;
+    const sf::Color repelColor = sf::Color::Red;
+    const sf::Color attractColor = sf::Color::Green;
+    const int width;
+    const int height;
+    const int smradius;
+
 
     sf::CircleShape circle;
     bool isMouseHeld = false;

@@ -5,9 +5,9 @@ sf::Color colorBlend(sf::Color c1, sf::Color c2, float blendRatio);
 
 float CosKernel(float dst, float radius);
 
-float SpikyKernelPow2(float dst);
+float SpikyKernelPow2(float dst, float radius);
 
-float DerivativeSpikyPow2(float dst);
+float DerivativeSpikyPow2(float dst, float radius);
 
 float DensityToPressure(float density);
 

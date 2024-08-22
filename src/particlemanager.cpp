@@ -4,11 +4,12 @@
 #include <iostream>
 #include <cmath>
 
-ParticleManager::ParticleManager() {
+ParticleManager::ParticleManager(int width, int height, int smradius) {
+    Config& config = Config::get();
 
-    squareSize = smoothingRadius;
-    gridWidth = WIDTH/squareSize;
-    gridHeight = HEIGHT/squareSize;
+    squareSize = smradius;
+    gridWidth = width/squareSize;
+    gridHeight = height/squareSize;
     numSquares = gridWidth * gridHeight;
 
     particlesInSquare.resize(numSquares);
