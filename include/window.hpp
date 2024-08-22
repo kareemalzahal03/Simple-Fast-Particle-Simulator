@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include "config.hpp"
+#include <string>
 
 // An abstraction of the SFML window class, with added functionality for
 // calculating, capping, and displaying FPS.
@@ -13,11 +14,13 @@ public:
 
     void onEvent(sf::Event& event);
 
-    // Draw the FPS to the top left of the screen.
+    // Draw the FPS, command to the top left of the screen.
     void drawFPS(float delta);
 
 private:
 
+    std::string command;
+    sf::Text commandText;
     sf::Text fpsText;
-    sf::Font fpsTextFont;
+    sf::Font font;
 };
