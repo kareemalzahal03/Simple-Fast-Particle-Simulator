@@ -227,7 +227,7 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
 void ParticleSimulator::onEvent(sf::Event& event) {
 
     if (event.type == sf::Event::KeyPressed){
-        if (event.key.code == sf::Keyboard::D) debug = !debug;
+        if (event.key.code == sf::Keyboard::Tab) debug = !debug;
     }
 
     if (event.type == sf::Event::MouseButtonPressed && 
