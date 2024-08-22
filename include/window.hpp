@@ -13,16 +13,18 @@ public:
 
     // To be called every iteration, returns time difference in seconds
     // between time last executed and updates the FPS text.
-    float calculateDelta();
+    // float calculateDelta();
+
+    void onEvent(sf::Event& event);
 
     // Draw the FPS to the top left of the screen.
-    void drawFPS();
+    void drawFPS(float delta);
 
 private:
 
-    sf::Clock fpsClock;
-    sf::Clock refreshClock;
+    // sf::Clock fpsClock;
+    // sf::Clock refreshClock;
     sf::Text fpsText;
     sf::Font fpsTextFont;
-    int frames = 0;
+    // int frames = 0;
 };

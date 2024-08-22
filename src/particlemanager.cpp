@@ -5,7 +5,6 @@
 #include <cmath>
 
 ParticleManager::ParticleManager(int width, int height, int smradius) {
-    Config& config = Config::get();
 
     squareSize = smradius;
     gridWidth = width/squareSize;

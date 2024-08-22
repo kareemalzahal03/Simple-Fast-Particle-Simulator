@@ -12,9 +12,9 @@ public:
 
     void simStep(float delta);
 
-    void onMouseEvent(sf::Event event);
+    void onEvent(sf::Event& event);
 
-    void drawContent(Window& window, bool debug = false);
+    void drawContent(Window& window);
 
 private:
 
@@ -27,12 +27,14 @@ private:
 
     ParticleManager pm;
     Parallelize parallelize;
-    // Config& config = Config::get();
+
+    bool debug = false;
     const int spawn = 1500;
     const int circleradius = 100;
     const sf::Color defaultColor = sf::Color::Cyan;
     const sf::Color repelColor = sf::Color::Red;
     const sf::Color attractColor = sf::Color::Green;
+
     const int width;
     const int height;
     const int smradius;

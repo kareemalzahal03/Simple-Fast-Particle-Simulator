@@ -18,30 +18,31 @@ int main() {
 
     Window window(width, height, "Particle Simulator");
     ParticleSimulator particlesim(width,height,smradius);
-    bool debug = false;
+    sf::Clock deltaClock;
+    float delta = 0;
 
     while (window.isOpen()) {
+
+        deltaClock.restart();
+
+        // Run Simulation Logic
+        particlesim.simStep(delta);
+
+        // Draw
+        window.clear(sf::Color(100,100,100));
+        particlesim.drawContent(window);
+        window.drawFPS(delta);
+        window.display();
+
+        delta = deltaClock.restart().asSeconds();
 
         // Poll Events
         sf::Event event;
         while (window.pollEvent(event)) { 
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            } else if (event.type == sf::Event::KeyPressed){
-                if (event.key.code == sf::Keyboard::D) debug = !debug;
-            } else {
-                particlesim.onMouseEvent(event);
-            }
+
+            window.onEvent(event);
+            particlesim.onEvent(event);
         }
-
-        // Run Simulation Logic
-        particlesim.simStep(window.calculateDelta());
-
-        // Draw
-        window.clear(sf::Color(100,100,100));
-        particlesim.drawContent(window,debug);
-        window.drawFPS();
-        window.display();
     }
 
     return 0;

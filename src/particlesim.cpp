@@ -114,7 +114,7 @@ void ParticleSimulator::moveParticles(float delta) {
     });
 }
 
-void ParticleSimulator::drawContent(Window& window, bool debug) {
+void ParticleSimulator::drawContent(Window& window) {
 
     // Color particles close to mouse
     if (debug && !isMouseHeld) 
@@ -225,7 +225,11 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
 }
 
 
-void ParticleSimulator::onMouseEvent(sf::Event event) {
+void ParticleSimulator::onEvent(sf::Event& event) {
+
+    if (event.type == sf::Event::KeyPressed){
+        if (event.key.code == sf::Keyboard::D) debug = !debug;
+    }
 
     if (event.type == sf::Event::MouseButtonPressed && 
         event.mouseButton.button == sf::Mouse::Left) { isMouseHeld = true; }
