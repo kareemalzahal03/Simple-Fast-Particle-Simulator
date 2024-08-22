@@ -7,6 +7,9 @@ class Config {
 public:
 
     // Variables subject to change
+    int width() { return values[WIDTH]; }
+    int height() { return values[HEIGHT]; }
+    float smradius() { return values[SMRADIUS]; }
     float viscosity() { return values[VISCOSITY]; }
     float gravity() { return values[GRAVITY]; }
     float mass() { return values[MASS]; }
@@ -30,34 +33,14 @@ private:
     std::string filename = ".config";
 
     enum VAR {
-        VISCOSITY,GRAVITY,MASS,TARGETDENSITY,PRESSURE,
-        MOUSE,COLLISION,varcount
+        WIDTH,HEIGHT,SMRADIUS,VISCOSITY,GRAVITY,MASS,
+        TARGETDENSITY,PRESSURE,MOUSE,COLLISION,varcount
     };
 
     const char* names[varcount] = {
-        "viscosity","gravity","mass","targetdensity",
-        "pressure","mouse","collision"
+        "width","height","smradius","viscosity","gravity",
+        "mass","targetdensity","pressure","mouse","collision"
     };
 
     float values[varcount];
 };
-
-// WINDOW
-
-// const int WIDTH = 1450;
-// const int HEIGHT = 900;
-// const int MAX_FRAME_RATE = 60;
-
-// // SIMULATOR
-
-// const int particleSpawn = 1500;
-// const float smRadius = 50;
-
-// const int PARTICLE_RADIUS = 6;
-// const int MOUSE_RADIUS = 100;
-
-// COLORS
-
-// const sf::Color defaultColor = sf::Color::Cyan;
-// const sf::Color repelColor = sf::Color::Red;
-// const sf::Color attractColor = sf::Color::Green;

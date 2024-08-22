@@ -11,10 +11,6 @@ public:
     // Constructor
     Window(int width, int height, const sf::String title);
 
-    // To be called every iteration, returns time difference in seconds
-    // between time last executed and updates the FPS text.
-    // float calculateDelta();
-
     void onEvent(sf::Event& event);
 
     // Draw the FPS to the top left of the screen.
@@ -22,9 +18,6 @@ public:
 
 private:
 
-    // sf::Clock fpsClock;
-    // sf::Clock refreshClock;
     sf::Text fpsText;
     sf::Font fpsTextFont;
-    // int frames = 0;
 };

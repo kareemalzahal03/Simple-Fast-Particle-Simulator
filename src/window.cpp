@@ -21,11 +21,16 @@ Window::Window(int width, int height, const sf::String title)
 }
 
 void Window::onEvent(sf::Event& event) {
+    Config& config = Config::get();
+
     if (event.type == sf::Event::Closed){
+
         close();
+        
     } else if (event.type == sf::Event::Resized) {
-        sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
-        setView(sf::View(visibleArea));
+
+        config("width "+std::to_string(event.size.width));
+        config("height "+std::to_string(event.size.height));
     }
 }
 

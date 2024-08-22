@@ -224,7 +224,6 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
     particle.setPosition(newPos);
 }
 
-
 void ParticleSimulator::onEvent(sf::Event& event) {
 
     if (event.type == sf::Event::KeyPressed){
@@ -242,6 +241,10 @@ void ParticleSimulator::onEvent(sf::Event& event) {
         }
     } 
 
-    if (event.type == sf::Event::MouseMoved) 
-        { circle.setPosition(event.mouseMove.x, event.mouseMove.y); }
+    if (event.type == sf::Event::MouseMoved) { 
+        Config& config = Config::get();
+        circle.setPosition(
+            event.mouseMove.x*width/config.width(), 
+            event.mouseMove.y*height/config.height());
+    }
 }
