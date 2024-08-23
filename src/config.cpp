@@ -6,7 +6,7 @@
 #include <filesystem>
 
 Config::Config() {
-    
+
     // For cross platform use
     while (!std::filesystem::exists("resources"))
     std::filesystem::current_path(std::filesystem::current_path().parent_path());

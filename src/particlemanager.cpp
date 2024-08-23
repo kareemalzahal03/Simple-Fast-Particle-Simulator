@@ -4,34 +4,41 @@
 #include <iostream>
 #include <cmath>
 
-ParticleManager::ParticleManager(int width, int height, int smradius) {
+ParticleManager::ParticleManager() {
 
-    squareSize = smradius;
-    gridWidth = width/squareSize;
-    gridHeight = height/squareSize;
+    updateGridVariables();
+    particlesInSquare.resize(numSquares);
+}
+
+void ParticleManager::updateGridVariables() {
+
+    smradius = Config::get().smradius();
+
+    gridWidth = std::floor(width/smradius);
+    gridHeight = std::floor(height/smradius);
     numSquares = gridWidth * gridHeight;
 
-    particlesInSquare.resize(numSquares);
+    squareWidth = float(width)/gridWidth;
+    squareHeight = float(height)/gridHeight;
 }
 
 int ParticleManager::getSquareID(sf::Vector2f pos) {
 
     if (std::isnan(pos.x) || std::isnan(pos.y)) return -1000;
 
-    int x = pos.x/squareSize;
-    int y = pos.y/squareSize;    
+    int x = pos.x/squareWidth;
+    int y = pos.y/squareHeight;    
     y -= (y == gridHeight);
     x -= (x == gridWidth);
 
     return y * gridWidth + x;
 }
 
-
 std::list<int> ParticleManager::getCloseSquareIDs(sf::Vector2f pos) {
     std::list<int> closeSquareIDs;
 
-    int x = pos.x/squareSize; x -= (x == gridWidth);
-    int y = pos.y/squareSize; y -= (y == gridHeight);
+    int x = pos.x/squareWidth; x -= (x == gridWidth);
+    int y = pos.y/squareHeight; y -= (y == gridHeight);
 
     if (!isValidSquareID(y * gridWidth + x)) return {};
 
@@ -59,8 +66,9 @@ int ParticleManager::size() {
     return particleCount;
 }
 
-void ParticleManager::sortParticles() {
-    for (int sID = 0; sID < numSquares; ++sID) {
+void ParticleManager::sort() {
+
+    for (int sID = 0; sID < particlesInSquare.size(); ++sID) {
         for (auto it = particlesInSquare[sID].begin(); it != particlesInSquare[sID].end(); ++it) {
             int newSquareID = getSquareID(it->getPosition());
             
@@ -77,6 +85,48 @@ void ParticleManager::sortParticles() {
                 it = particlesInSquare[sID].erase(it);
                 continue;
             }
+        }
+    }
+}
+
+bool ParticleManager::outdatedGridVariables() {
+    return smradius != Config::get().smradius();
+}
+
+void ParticleManager::sortParticles() {
+
+    if (outdatedGridVariables()) {
+
+        updateGridVariables();
+        
+        if (particlesInSquare.size() < numSquares) {
+
+            particlesInSquare.resize(numSquares);
+            sort();
+
+        } else {
+
+            sort();
+            particlesInSquare.resize(numSquares);
+        } 
+
+    } else {
+
+        sort();
+    }
+}
+
+void ParticleManager::drawBoxes(sf::RenderWindow& window) {
+
+    sf::RectangleShape r(sf::Vector2f(squareWidth,squareHeight));
+    r.setFillColor(sf::Color(0,0,0,0));
+    r.setOutlineColor(sf::Color::White);
+    r.setOutlineThickness(1);
+
+    for (int x = 0; x < gridWidth; ++x) {
+        for (int y = 0; y < gridHeight; ++y) {
+            r.setPosition(sf::Vector2f(x*squareWidth, y*squareHeight));
+            window.draw(r);
         }
     }
 }

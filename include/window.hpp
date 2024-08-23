@@ -10,7 +10,7 @@ class Window : public sf::RenderWindow {
 public:
 
     // Constructor
-    Window(int width, int height, const sf::String title);
+    Window(const sf::String title);
 
     void onEvent(sf::Event& event);
 

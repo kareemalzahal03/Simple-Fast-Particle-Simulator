@@ -2,7 +2,7 @@
 #include "window.hpp"
 #include <filesystem>
 
-Window::Window(int width, int height, const sf::String title) 
+Window::Window(const sf::String title) 
 : sf::RenderWindow(sf::VideoMode(width, height), title) {
     
     // For cross platform use
@@ -25,7 +25,7 @@ Window::Window(int width, int height, const sf::String title)
     commandText.setPosition(100,0);
     commandText.setString("> Type a command...");
 
-    this->setFramerateLimit(60);
+    this->setFramerateLimit(70);
 }
 
 void Window::onEvent(sf::Event& event) {
@@ -34,11 +34,6 @@ void Window::onEvent(sf::Event& event) {
     if (event.type == sf::Event::Closed){
 
         close();
-
-    } else if (event.type == sf::Event::Resized) {
-
-        config("width "+std::to_string(event.size.width));
-        config("height "+std::to_string(event.size.height));
 
     } else if (event.type == sf::Event::KeyPressed){
 

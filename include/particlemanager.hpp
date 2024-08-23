@@ -8,9 +8,10 @@ class ParticleManager {
 friend class ParticleIterator;
 public:
 
-    ParticleManager(int width, int height, int smradius);
+    ParticleManager();
     void addParticle(Particle particle);
     void sortParticles();
+    void drawBoxes(sf::RenderWindow& window);
 
     class ParticleIterator {
     friend class ParticleManager;
@@ -47,9 +48,16 @@ private:
     int getSquareID(sf::Vector2f pos);
     bool isValidSquareID(int squareID);
     std::list<int> getCloseSquareIDs(sf::Vector2f pos);
+    void updateGridVariables();
+    bool outdatedGridVariables();
+    void sort();
 
     int particleCount = 0;
-    int squareSize;
+    float smradius;
+
+    float squareWidth;
+    float squareHeight;
+    // int squareSize;
     int numSquares;
     int gridWidth;
     int gridHeight;

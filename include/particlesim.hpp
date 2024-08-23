@@ -8,13 +8,13 @@
 class ParticleSimulator {
 public:
 
-    ParticleSimulator(int width, int height, int smradius);
+    ParticleSimulator();
 
     void simStep(float delta);
 
-    void onEvent(sf::Event& event);
+    void onEvent(sf::Event& event, sf::Vector2u size);
 
-    void drawContent(Window& window);
+    void drawContent(sf::RenderWindow& window);
 
 private:
 
@@ -34,10 +34,6 @@ private:
     const sf::Color defaultColor = sf::Color::Cyan;
     const sf::Color repelColor = sf::Color::Red;
     const sf::Color attractColor = sf::Color::Green;
-
-    const int width;
-    const int height;
-    const int smradius;
 
     bool debug = false;
     sf::CircleShape circle;

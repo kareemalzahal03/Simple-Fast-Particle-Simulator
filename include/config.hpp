@@ -3,12 +3,14 @@
 #include <cmath>
 #include <string>
 
+// Program wide constants
+inline const int width = 1450;
+inline const int height = 900;
+
 class Config {
 public:
 
     // Variables subject to change
-    int width() { return values[WIDTH]; }
-    int height() { return values[HEIGHT]; }
     float smradius() { return values[SMRADIUS]; }
     float viscosity() { return values[VISCOSITY]; }
     float gravity() { return values[GRAVITY]; }
@@ -33,13 +35,13 @@ private:
     std::string filename = ".config";
 
     enum VAR {
-        WIDTH,HEIGHT,SMRADIUS,VISCOSITY,GRAVITY,MASS,
-        TARGETDENSITY,PRESSURE,MOUSE,COLLISION,varcount
+        SMRADIUS,VISCOSITY,GRAVITY,MASS,TARGETDENSITY,
+        PRESSURE,MOUSE,COLLISION,varcount
     };
 
     const char* names[varcount] = {
-        "width","height","smradius","viscosity","gravity",
-        "mass","targetdensity","pressure","mouse","collision"
+        "smradius","viscosity","gravity","mass",
+        "targetdensity","pressure","mouse","collision"
     };
 
     float values[varcount];

@@ -12,13 +12,10 @@
 #include <iostream>
 
 int main() {
-    Config& config = Config::get();
-    int width = config.width();
-    int height = config.height();
 
-    Window window(width,height,"Particle Simulator");
-    ParticleSimulator particlesim(width,height,config.smradius());
-    
+    Window window("Particle Simulator");
+    ParticleSimulator particlesim;
+
     sf::Clock deltaClock;
     float delta = 0;
 
@@ -41,7 +38,7 @@ int main() {
         sf::Event event;
         while (window.pollEvent(event)) { 
             window.onEvent(event);
-            particlesim.onEvent(event);
+            particlesim.onEvent(event, window.getSize());
         }
     }
 

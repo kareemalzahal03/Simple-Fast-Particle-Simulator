@@ -9,9 +9,7 @@
 #include "mathfunctions.hpp"
 #include <stdlib.h>
 
-ParticleSimulator::ParticleSimulator(int width, int height, int smradius):
-    width(width),height(height),smradius(smradius),
-    pm(width,height,smradius) {
+ParticleSimulator::ParticleSimulator() {
 
     // Spawn particles
     for (int x = 0; x < spawn; x++) {
@@ -45,7 +43,6 @@ void ParticleSimulator::simStep(float delta) {
 void ParticleSimulator::calculateDensities() {
 
     parallelize.for_each(pm,[this](Particle& particle) {
-
         Config& config = Config::get();
 
         float density = 0.1;
@@ -54,7 +51,7 @@ void ParticleSimulator::calculateDensities() {
 
             float dist = Magnitude(particle.getPosition()-other->getPosition());
 
-            density += SpikyKernelPow2(dist,smradius) * config.mass();
+            density += SpikyKernelPow2(dist,config.smradius()) * config.mass();
         }
 
         particle.density = density;
@@ -78,11 +75,11 @@ void ParticleSimulator::calculateParticleForces() {
 
             // PRESSURE
             pressureForce -= Unit(dir) * SharedPressure(particle.density, other->density)
-            * DerivativeSpikyPow2(Magnitude(dir),smradius) * config.mass() / other->density;
+            * DerivativeSpikyPow2(Magnitude(dir),config.smradius()) * config.mass() / other->density;
 
             // VISCOSITY
             viscosityForce += (other->velocity - particle.velocity)
-            * CosKernel(Magnitude(dir), smradius) * config.viscosity();
+            * CosKernel(Magnitude(dir), config.smradius()) * config.viscosity();
         }
 
         // GRAVITY
@@ -92,7 +89,7 @@ void ParticleSimulator::calculateParticleForces() {
         sf::Vector2f dirToMouse = circle.getPosition() - particle.getPosition();
         if (isMouseHeld) mouseForce += 
             (isRepelling ? -1 : 1) 
-            * CosKernel(Magnitude(dirToMouse), 2*100) 
+            * CosKernel(Magnitude(dirToMouse), 2*circleradius) 
             * config.mouse() * Unit(dirToMouse);
 
         // TOTAL FORCE
@@ -114,7 +111,8 @@ void ParticleSimulator::moveParticles(float delta) {
     });
 }
 
-void ParticleSimulator::drawContent(Window& window) {
+void ParticleSimulator::drawContent(sf::RenderWindow& window) {
+    float smradius = Config::get().smradius();
 
     // Color particles close to mouse
     if (debug && !isMouseHeld) 
@@ -122,12 +120,15 @@ void ParticleSimulator::drawContent(Window& window) {
         p->setFillColor(sf::Color::Red);
     }
     
+    if (debug) pm.drawBoxes(window);
+
     // Draw Particles
     for (auto& particle : pm) 
         window.draw(particle);
 
     // Draw Circle
     if (isMouseHeld) {
+
         window.draw(circle);
 
     } else if (debug) {
@@ -139,25 +140,12 @@ void ParticleSimulator::drawContent(Window& window) {
         window.draw(smRadiusCircle);
     }
         
-    // Draw Boxes
-    if (debug) {
-
-        sf::RectangleShape r(sf::Vector2f(smradius,smradius));
-        r.setFillColor(sf::Color(0,0,0,0));
-        r.setOutlineColor(sf::Color::White);
-        r.setOutlineThickness(0.5);
-
-        for (int x = 0; x < width/smradius; ++x) {
-            for (int y = 0; y < height/smradius; ++y) {
-                r.setPosition(sf::Vector2f(x*smradius, y*smradius));
-                window.draw(r);
-            }
-        }
-    }
+    
 }
 
 void ParticleSimulator::moveParticle(Particle& particle, float delta) {
-    Config& config = Config::get();
+
+    float collision = Config::get().collision();
 
     sf::Vector2f currPos = particle.getPosition();
     sf::Vector2 moveVec = delta * particle.velocity;
@@ -172,7 +160,7 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
             if (0 <= collisionPos.y && collisionPos.y <= height) {
 
                 currPos = collisionPos;
-                moveVec = config.collision()*(newPos-currPos);
+                moveVec = collision*(newPos-currPos);
                 moveVec.x *= -1;
                 particle.velocity.x *= - 1;
             }
@@ -185,7 +173,7 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
             if (0 <= collisionPos.y && collisionPos.y <= height) {
 
                 currPos = collisionPos;
-                moveVec = config.collision()*(newPos-currPos);
+                moveVec = collision*(newPos-currPos);
                 moveVec.x *= -1;
                 particle.velocity.x *= - 1;
             }
@@ -198,7 +186,7 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
             if (0 <= collisionPos.x && collisionPos.x <= width) {
 
                 currPos = collisionPos;
-                moveVec = config.collision()*(newPos-currPos);
+                moveVec = collision*(newPos-currPos);
                 moveVec.y *= -1;
                 particle.velocity.y *= - 1;
             }
@@ -211,20 +199,20 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
             if (0 <= collisionPos.x && collisionPos.x <= width) {
 
                 currPos = collisionPos;
-                moveVec = config.collision()*(newPos-currPos);
+                moveVec = collision*(newPos-currPos);
                 moveVec.y *= -1;
                 particle.velocity.y *= - 1;
             }
         }
 
-        particle.velocity *= config.collision();
+        particle.velocity *= collision;
         newPos = currPos + moveVec;
     }
 
     particle.setPosition(newPos);
 }
 
-void ParticleSimulator::onEvent(sf::Event& event) {
+void ParticleSimulator::onEvent(sf::Event& event, sf::Vector2u size) {
 
     if (event.type == sf::Event::KeyPressed){
         if (event.key.code == sf::Keyboard::Tab) debug = !debug;
@@ -241,10 +229,7 @@ void ParticleSimulator::onEvent(sf::Event& event) {
         }
     } 
 
-    if (event.type == sf::Event::MouseMoved) { 
-        Config& config = Config::get();
-        circle.setPosition(
-            event.mouseMove.x*width/config.width(), 
-            event.mouseMove.y*height/config.height());
-    }
+    if (event.type == sf::Event::MouseMoved) 
+        circle.setPosition(event.mouseMove.x*width/size.x, event.mouseMove.y*height/size.y);
 }
+
