@@ -58,7 +58,7 @@ bool ParticleManager::isValidSquareID(int squareID) {
 
 void ParticleManager::addParticle(Particle p) {
 
-    particlesInSquare[getSquareID(p.getPosition())].push_front(p);
+    particlesInSquare[getSquareID(p.position)].push_front(p);
     particleCount++;
 }
 
@@ -70,7 +70,7 @@ void ParticleManager::sort() {
 
     for (int sID = 0; sID < particlesInSquare.size(); ++sID) {
         for (auto it = particlesInSquare[sID].begin(); it != particlesInSquare[sID].end(); ++it) {
-            int newSquareID = getSquareID(it->getPosition());
+            int newSquareID = getSquareID(it->position);
             
             if (!isValidSquareID(newSquareID)) {
 

@@ -1,13 +1,18 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "config.hpp"
 #include <cmath>
 
-class Particle : public sf::CircleShape {
-public:
+struct Particle {
 
-    sf::Vector2f force;
+    Particle(): position(
+        float(rand())/RAND_MAX*width,
+        float(rand())/RAND_MAX*height) {}
+    
+    Particle(sf::Vector2f position): position(position) {}
+
+    sf::Vector2f position;
     sf::Vector2f velocity;
+    sf::Vector2f force;
     float density;
-
-    Particle(sf::Vector2f pos);
 };

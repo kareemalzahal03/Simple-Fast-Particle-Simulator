@@ -13,12 +13,7 @@ ParticleSimulator::ParticleSimulator() {
 
     // Spawn particles
     for (int x = 0; x < spawn; x++) {
-        // Set Random Position
-        sf::Vector2f randomPos(
-            static_cast <float> (rand ()) / static_cast <float> (RAND_MAX) * width, 
-            static_cast <float> (rand ()) / static_cast <float> (RAND_MAX) * height);
-
-        pm.addParticle(Particle(randomPos));
+        pm.addParticle(Particle());
     }
 
     // Init circle
@@ -47,11 +42,11 @@ void ParticleSimulator::calculateDensities() {
 
         float density = 0.1;
 
-        for (auto other = pm.begin(particle.getPosition()); other != pm.end(); ++other) {
+        for (auto other = pm.begin(particle.position); other != pm.end(); ++other) {
 
-            float dist = Magnitude(particle.getPosition()-other->getPosition());
+            float dist = Magnitude(particle.position - other->position);
 
-            density += SpikyKernelPow2(dist,config.smradius()) * config.mass();
+            density += SpikyKernelPow2(dist, config.smradius()) * config.mass();
         }
 
         particle.density = density;
@@ -69,9 +64,9 @@ void ParticleSimulator::calculateParticleForces() {
         sf::Vector2f gravityForce;
         sf::Vector2f mouseForce;
     
-        for (auto other = pm.begin(particle.getPosition()); other != pm.end(); ++other) {
+        for (auto other = pm.begin(particle.position); other != pm.end(); ++other) {
 
-            sf::Vector2f dir = particle.getPosition() - other->getPosition();
+            sf::Vector2f dir = particle.position - other->position;
 
             // PRESSURE
             pressureForce -= Unit(dir) * SharedPressure(particle.density, other->density)
@@ -86,7 +81,7 @@ void ParticleSimulator::calculateParticleForces() {
         gravityForce = sf::Vector2f(0, config.gravity());
 
         // MOUSE
-        sf::Vector2f dirToMouse = circle.getPosition() - particle.getPosition();
+        sf::Vector2f dirToMouse = circle.getPosition() - particle.position;
         if (isMouseHeld) mouseForce += 
             (isRepelling ? -1 : 1) 
             * CosKernel(Magnitude(dirToMouse), 2*circleradius) 
@@ -104,27 +99,35 @@ void ParticleSimulator::moveParticles(float delta) {
         sf::Vector2f particle_acceleration = particle.force / particle.density;
         particle.velocity += particle_acceleration * delta;
         moveParticle(particle, delta);
-
-        Config& config = Config::get();
-        particle.setFillColor(colorBlend(sf::Color::Cyan,sf::Color::Blue,
-            (particle.density-config.targetdensity())/3));
     });
 }
 
-void ParticleSimulator::drawContent(sf::RenderWindow& window) {
-    float smradius = Config::get().smradius();
-
-    // Color particles close to mouse
-    if (debug && !isMouseHeld) 
-    for (auto p = pm.begin(circle.getPosition()); p != pm.end(); ++p) {
-        p->setFillColor(sf::Color::Red);
-    }
+void ParticleSimulator::drawContent(sf::RenderWindow& window) {    
     
     if (debug) pm.drawBoxes(window);
 
     // Draw Particles
-    for (auto& particle : pm) 
-        window.draw(particle);
+    Config& config = Config::get();
+    sf::CircleShape particleShape(particleRaduis);
+    particleShape.setOrigin(particleRaduis/2,particleRaduis/2);
+
+    for (auto& particle : pm) {
+
+        particleShape.setPosition(particle.position);
+        particleShape.setFillColor(colorBlend(sf::Color::Cyan,sf::Color::Blue,
+            (particle.density-config.targetdensity())/3));
+
+        window.draw(particleShape);
+    }
+
+    if (debug && !isMouseHeld) 
+    for (auto p = pm.begin(circle.getPosition()); p != pm.end(); ++p) {
+
+        particleShape.setPosition(p->position);
+        particleShape.setFillColor(sf::Color::Red);
+
+        window.draw(particleShape);
+    }
 
     // Draw Circle
     if (isMouseHeld) {
@@ -133,21 +136,20 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
 
     } else if (debug) {
 
+        float smradius = Config::get().smradius();
         sf::CircleShape smRadiusCircle = circle;
         smRadiusCircle.setRadius(smradius);
         smRadiusCircle.setOutlineColor(sf::Color::White);
         smRadiusCircle.setOrigin(smradius,smradius);
         window.draw(smRadiusCircle);
     }
-        
-    
 }
 
 void ParticleSimulator::moveParticle(Particle& particle, float delta) {
 
     float collision = Config::get().collision();
 
-    sf::Vector2f currPos = particle.getPosition();
+    sf::Vector2f currPos = particle.position;
     sf::Vector2 moveVec = delta * particle.velocity;
     sf::Vector2f newPos = currPos + moveVec;
 
@@ -209,7 +211,7 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
         newPos = currPos + moveVec;
     }
 
-    particle.setPosition(newPos);
+    particle.position = newPos;
 }
 
 void ParticleSimulator::onEvent(sf::Event& event, sf::Vector2u size) {

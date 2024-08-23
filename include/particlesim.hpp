@@ -29,12 +29,6 @@ private:
     ParticleManager pm;
     Parallelize parallelize;
 
-    const int spawn = 1500;
-    const int circleradius = 100;
-    const sf::Color defaultColor = sf::Color::Cyan;
-    const sf::Color repelColor = sf::Color::Red;
-    const sf::Color attractColor = sf::Color::Green;
-
     bool debug = false;
     sf::CircleShape circle;
     bool isMouseHeld = false;
