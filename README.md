@@ -11,8 +11,15 @@ The Simple Fast Particle Simulator is a high-performance C++ application built u
 <table>
   <tr>
     <td width=400>
-      Left click and drag the mouse on the window to repell or attract nearby particles. To toggle between attract (green) and repell (red), right click. To enable debug mode, press the D key. FPS is shown on the top left of the screen. 
-      <br><br>To change the behaviour of the particles, edit the 'constants.h' file to edit variables that the simulator uses.
+      Left click and drag the mouse on the window to
+      repell or attract nearby particles. To toggle
+      between attract (green) and repell (red), right click. 
+      To enable debug mode, press the TAB key. FPS is shown
+      on the top left of the screen. 
+      <br><br>
+      To change the behaviour of the particles, type a 
+      command on the top left of the window to change 
+      variables the engine uses. (See .config)
     </td>
     <td><img src="resources/img1.png" alt="Simple Fast Particle Simulator" width="400"/></td>
   </tr>
@@ -66,7 +73,7 @@ cmake --build build --config Release
 
 This project is released under MIT license. See [LICENSE.md](LICENSE.md) for details. Note that this does not cover any of the submodules located under [vendor](vendors/) and assets located under [resources](resources/).
 
-- [sfml](vendors/sfml/) is covered under [Zlib](vendors/sfml/license.md) license.
+- [sfml](vendors/sfml/) is covered under [Zlib](https://github.com/SFML/SFML/blob/master/license.md) license.
 
 - [FiraCode-Regular.ttf](resourcs/FiraCode-Regular.ttf) is covered under [OFL-1.1](https://github.com/tonsky/FiraCode/blob/master/LICENSE) license.
 
