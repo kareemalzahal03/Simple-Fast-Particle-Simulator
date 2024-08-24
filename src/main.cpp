@@ -11,35 +11,51 @@
 #include "particlesim.hpp"
 #include <iostream>
 
+struct AccurateSleep {
+    void operator()(sf::Time time) {
+        clock.restart();
+        sf::sleep(time - diff);
+        diff += clock.getElapsedTime() - time;
+    }
+private:
+    sf::Time diff;
+    sf::Clock clock;
+};
+
 int main() {
 
     Window window("Particle Simulator");
     ParticleSimulator particlesim;
+    AccurateSleep accuratesleep;
 
     sf::Clock deltaClock;
-    float delta = 0;
+    sf::Clock drawClock;
+    sf::Time delta;
+    sf::Time draw;
 
     while (window.isOpen()) {
 
-        deltaClock.restart();
-
-        // Run Simulation Logic
-        particlesim.simStep(delta);
-
-        // Draw
-        window.clear(sf::Color(100,100,100));
-        particlesim.drawContent(window);
-        window.drawFPS(delta);
-        window.display();
-
-        delta = deltaClock.restart().asSeconds();
-
+        drawClock.restart();
         // Poll Events
         sf::Event event;
         while (window.pollEvent(event)) { 
             window.onEvent(event);
             particlesim.onEvent(event, window.getSize());
         }
+        // Draw
+        window.clear(sf::Color(100,100,100));
+        particlesim.drawContent(window);
+        window.drawFPS();
+        window.display();
+        draw = drawClock.restart();
+
+        deltaClock.restart();
+        particlesim.simStep(1.f/fps);
+        delta = deltaClock.restart();
+
+        sf::Time frameTime = delta + draw;
+        window.updateFPS(frameTime);
+        accuratesleep(sf::milliseconds(1000/fps) - frameTime);
     }
 
     return 0;

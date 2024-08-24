@@ -6,7 +6,8 @@
 // Program wide constants
 inline const int width = 1450;
 inline const int height = 900;
-inline const int spawn = 1500;
+inline const int fps = 100;
+inline const int spawn = 2000;
 inline const int circleradius = 100;
 inline const int particleRaduis = 6;
 inline const sf::Color defaultColor = sf::Color::Cyan;

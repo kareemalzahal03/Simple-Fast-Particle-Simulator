@@ -25,7 +25,7 @@ Window::Window(const sf::String title)
     commandText.setPosition(100,0);
     commandText.setString("> Type a command...");
 
-    this->setFramerateLimit(70);
+    // this->setFramerateLimit(100);
 }
 
 void Window::onEvent(sf::Event& event) {
@@ -62,11 +62,20 @@ void Window::onEvent(sf::Event& event) {
     }
 }
 
-void Window::drawFPS(float delta) {
+void Window::updateFPS(sf::Time frameTime) {
+    if (frameTime.asSeconds() > 1.f/fps) {
+        fpsText.setFillColor(sf::Color::Yellow);
+        fpsText.setString(
+            std::to_string(int(frameTime.asSeconds())) + " fps");
+    } else {
+        fpsText.setFillColor(sf::Color::Green);
+        fpsText.setString(
+            std::to_string(fps) + " fps");
+    }
+}
 
-    if (delta) fpsText.setString(
-        std::to_string(static_cast<int>(1.f/delta)) + " fps");
-        
+void Window::drawFPS() {
+    
     this->draw(fpsText);
     this->draw(commandText);
 }

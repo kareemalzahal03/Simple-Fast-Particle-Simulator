@@ -15,10 +15,14 @@ public:
     void onEvent(sf::Event& event);
 
     // Draw the FPS, command to the top left of the screen.
-    void drawFPS(float delta);
+    void drawFPS();
+
+    void updateFPS(sf::Time frameTime);
 
 private:
 
+    // sf::Clock timeElapsed;
+    // int frames = 0;
     std::string command;
     sf::Text commandText;
     sf::Text fpsText;
