@@ -30,8 +30,7 @@ int main() {
 
     sf::Clock deltaClock;
     sf::Clock drawClock;
-    sf::Time delta;
-    sf::Time draw;
+    sf::Time frameTime;
 
     while (window.isOpen()) {
 
@@ -47,13 +46,10 @@ int main() {
         particlesim.drawContent(window);
         window.drawFPS();
         window.display();
-        draw = drawClock.restart();
 
-        deltaClock.restart();
         particlesim.simStep(1.f/fps);
-        delta = deltaClock.restart();
+        frameTime = deltaClock.restart();
 
-        sf::Time frameTime = delta + draw;
         window.updateFPS(frameTime);
         accuratesleep(sf::milliseconds(1000/fps) - frameTime);
     }

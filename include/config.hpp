@@ -6,7 +6,7 @@
 // Program wide constants
 inline const int width = 1450;
 inline const int height = 900;
-inline const int fps = 100;
+inline const int fps = 90;
 inline const int spawn = 2000;
 inline const int circleradius = 100;
 inline const int particleRaduis = 6;

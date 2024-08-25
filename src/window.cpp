@@ -63,14 +63,14 @@ void Window::onEvent(sf::Event& event) {
 }
 
 void Window::updateFPS(sf::Time frameTime) {
-    if (frameTime.asSeconds() > 1.f/fps) {
+
+    if (frameTime.asSeconds() > 1000/fps) {
         fpsText.setFillColor(sf::Color::Yellow);
         fpsText.setString(
-            std::to_string(int(frameTime.asSeconds())) + " fps");
+            std::to_string(int(1.f/frameTime.asSeconds())) + " fps");
     } else {
         fpsText.setFillColor(sf::Color::Green);
-        fpsText.setString(
-            std::to_string(fps) + " fps");
+        fpsText.setString(std::to_string(fps) + " fps");
     }
 }
 
