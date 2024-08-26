@@ -8,7 +8,7 @@
 class ParticleSimulator {
 public:
 
-    ParticleSimulator();
+    ParticleSimulator(int width, int height);
 
     void simStep(float delta);
 
@@ -28,6 +28,16 @@ private:
 
     ParticleManager pm;
     Parallelize parallelize;
+
+    const int width;
+    const int height;
+
+    const int spawn = 2000;
+    const int circleradius = 100;
+    const int particleRaduis = 6;
+    const sf::Color defaultColor = sf::Color::Cyan;
+    const sf::Color repelColor = sf::Color::Red;
+    const sf::Color attractColor = sf::Color::Green;
 
     bool debug = false;
     sf::CircleShape circle;

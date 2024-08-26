@@ -4,7 +4,8 @@
 #include <iostream>
 #include <cmath>
 
-ParticleManager::ParticleManager() {
+ParticleManager::ParticleManager(int width, int height):
+    width(width), height(height) {
 
     updateGridVariables();
     particlesInSquare.resize(numSquares);

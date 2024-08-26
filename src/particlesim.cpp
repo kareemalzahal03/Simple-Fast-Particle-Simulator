@@ -9,11 +9,15 @@
 #include "mathfunctions.hpp"
 #include <stdlib.h>
 
-ParticleSimulator::ParticleSimulator() {
+ParticleSimulator::ParticleSimulator(int width, int height):
+    width(width), height(height), pm(width, height) {
 
     // Spawn particles
     for (int x = 0; x < spawn; x++) {
-        pm.addParticle(Particle());
+        sf::Vector2f randomPos(
+            float(rand())/RAND_MAX*width,
+            float(rand())/RAND_MAX*height);
+        pm.addParticle(Particle(randomPos));
     }
 
     // Init circle
@@ -25,14 +29,14 @@ ParticleSimulator::ParticleSimulator() {
 }
 
 void ParticleSimulator::simStep(float delta) {
-
-    pm.sortParticles();
     
     calculateDensities();
 
     calculateParticleForces();
     
     moveParticles(delta);
+
+    pm.sortParticles();
 }
 
 void ParticleSimulator::calculateDensities() {

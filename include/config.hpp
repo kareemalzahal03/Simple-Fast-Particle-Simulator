@@ -3,17 +3,6 @@
 #include <cmath>
 #include <string>
 
-// Program wide constants
-inline const int width = 1450;
-inline const int height = 900;
-inline const int fps = 90;
-inline const int spawn = 2000;
-inline const int circleradius = 100;
-inline const int particleRaduis = 6;
-inline const sf::Color defaultColor = sf::Color::Cyan;
-inline const sf::Color repelColor = sf::Color::Red;
-inline const sf::Color attractColor = sf::Color::Green;
-
 class Config {
 public:
 
@@ -39,7 +28,7 @@ private:
     void set(std::string name, float value);
     void printError();
 
-    std::string filename = ".config";
+    const std::string filename = ".config";
 
     enum VAR {
         SMRADIUS,VISCOSITY,GRAVITY,MASS,TARGETDENSITY,

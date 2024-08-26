@@ -8,7 +8,7 @@ class ParticleManager {
 friend class ParticleIterator;
 public:
 
-    ParticleManager();
+    ParticleManager(int width, int height);
     void addParticle(Particle particle);
     void sortParticles();
     void drawBoxes(sf::RenderWindow& window);
@@ -52,12 +52,14 @@ private:
     bool outdatedGridVariables();
     void sort();
 
-    int particleCount = 0;
-    float smradius;
+    const int width;
+    const int height;
 
+    int particleCount = 0;
+    
+    float smradius;
     float squareWidth;
     float squareHeight;
-    // int squareSize;
     int numSquares;
     int gridWidth;
     int gridHeight;
