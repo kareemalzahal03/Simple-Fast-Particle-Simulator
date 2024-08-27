@@ -8,14 +8,14 @@ void Engine::run() {
     while (window.isOpen()) {
 
         sf::Time frameTime = frame();
-    
+
         window.updateFPSText(targetfps);
-        accuratesleep(sf::microseconds(1000000/targetfps) - frameTime);
+        accurateSleep(sf::microseconds(1000000/targetfps) - frameTime);
     }
 }
 
 sf::Time Engine::frame() {
-    frameClock.restart();
+    clock.restart();
 
     // Process Events
     sf::Event event;
@@ -37,7 +37,7 @@ sf::Time Engine::frame() {
     // Run Sim Step
     particlesim.simStep(1.f/targetfps);
 
-    return frameClock.restart();
+    return clock.restart();
 }
 
 void Engine::interpretCommand() {
@@ -63,4 +63,11 @@ void Engine::onKeyPressed(sf::Keyboard::Key code) {
         interpretCommand();
 
     window.updateCommandText(command);
+}
+
+void Engine::accurateSleep(sf::Time time) {
+    clock.restart();
+    while (time - clock.getElapsedTime() > sf::seconds(0)) {
+        sf::sleep((time - clock.getElapsedTime())/2.f);
+    }
 }

@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include "window.hpp"
 #include "particlesim.hpp"
-#include "accsleep.hpp"
 
 class Engine {
 public:
@@ -15,6 +14,7 @@ private:
     sf::Time frame();
     void onKeyPressed(sf::Keyboard::Key code);
     void interpretCommand();
+    void accurateSleep(sf::Time time);
 
     const int width = 1450;
     const int height = 900;
@@ -22,7 +22,6 @@ private:
 
     Window window;
     ParticleSimulator particlesim;
-    AccurateSleep accuratesleep;
-    sf::Clock frameClock;
+    sf::Clock clock;
     std::string command;
 };
