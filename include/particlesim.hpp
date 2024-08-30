@@ -16,6 +16,8 @@ public:
 
     void drawContent(sf::RenderWindow& window);
 
+    void setValue(std::string name, float value);
+
 private:
 
     void calculateDensities();
@@ -31,13 +33,21 @@ private:
 
     const int width;
     const int height;
-
     const int spawn = 2000;
     const int circleradius = 100;
     const int particleRaduis = 6;
     const sf::Color defaultColor = sf::Color::Cyan;
     const sf::Color repelColor = sf::Color::Red;
     const sf::Color attractColor = sf::Color::Green;
+
+    float smradius;
+    float viscosity;
+    float gravity;
+    float mass;
+    float targetdensity;
+    float pressure;
+    float mouse;
+    float collision;
 
     bool debug = false;
     sf::CircleShape circle;

@@ -7,13 +7,12 @@
 ParticleManager::ParticleManager(int width, int height):
     width(width), height(height) {
 
-    updateGridVariables();
-    particlesInSquare.resize(numSquares);
+    updateSmRadius(50);
 }
 
-void ParticleManager::updateGridVariables() {
+void ParticleManager::updateSmRadius(float smr) {
 
-    smradius = Config::get().smradius();
+    smradius = smr;
 
     gridWidth = std::floor(width/smradius);
     gridHeight = std::floor(height/smradius);
@@ -21,6 +20,17 @@ void ParticleManager::updateGridVariables() {
 
     squareWidth = float(width)/gridWidth;
     squareHeight = float(height)/gridHeight;
+        
+    if (particlesInSquare.size() < numSquares) {
+
+        particlesInSquare.resize(numSquares);
+        sortParticles();
+
+    } else {
+
+        sortParticles();
+        particlesInSquare.resize(numSquares);
+    } 
 }
 
 int ParticleManager::getSquareID(sf::Vector2f pos) {
@@ -67,7 +77,7 @@ int ParticleManager::size() {
     return particleCount;
 }
 
-void ParticleManager::sort() {
+void ParticleManager::sortParticles() {
 
     for (int sID = 0; sID < particlesInSquare.size(); ++sID) {
         for (auto it = particlesInSquare[sID].begin(); it != particlesInSquare[sID].end(); ++it) {
@@ -87,33 +97,6 @@ void ParticleManager::sort() {
                 continue;
             }
         }
-    }
-}
-
-bool ParticleManager::outdatedGridVariables() {
-    return smradius != Config::get().smradius();
-}
-
-void ParticleManager::sortParticles() {
-
-    if (outdatedGridVariables()) {
-
-        updateGridVariables();
-        
-        if (particlesInSquare.size() < numSquares) {
-
-            particlesInSquare.resize(numSquares);
-            sort();
-
-        } else {
-
-            sort();
-            particlesInSquare.resize(numSquares);
-        } 
-
-    } else {
-
-        sort();
     }
 }
 

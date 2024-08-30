@@ -9,9 +9,7 @@ float SpikyKernelPow2(float dst, float radius);
 
 float DerivativeSpikyPow2(float dst, float radius);
 
-float DensityToPressure(float density);
-
-float SharedPressure(float density1, float density2);
+float SharedPressure(float density1, float density2, float targetdensity, float pressure);
 
 float Magnitude(sf::Vector2f v);
 

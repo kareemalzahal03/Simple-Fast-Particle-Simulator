@@ -1,5 +1,4 @@
 #include <SFML/Graphics.hpp>
-#include "config.hpp"
 #include <cmath>
 
 sf::Color colorBlend(sf::Color c1, sf::Color c2, float blendRatio) {
@@ -37,15 +36,9 @@ float DerivativeSpikyPow2(float dst, float radius) {
     return - 2 * v / ((radius)*(radius));
 }
 
-float DensityToPressure(float density) {
-    Config& config = Config::get();
+float SharedPressure(float density1, float density2, float targetdensity, float pressure) {
 
-    return (density - config.targetdensity()) * config.pressure();
-}
-
-float SharedPressure(float density1, float density2) {
-
-    return (DensityToPressure(density1) + DensityToPressure(density2)) / 2;
+    return (density1 + density2 - 2 * targetdensity ) * pressure / 2;
 }
 
 float Magnitude(sf::Vector2f v) {

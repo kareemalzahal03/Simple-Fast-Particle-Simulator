@@ -42,7 +42,6 @@ void ParticleSimulator::simStep(float delta) {
 void ParticleSimulator::calculateDensities() {
 
     parallelize.for_each(pm,[this](Particle& particle) {
-        Config& config = Config::get();
 
         float density = 0.1;
 
@@ -50,7 +49,7 @@ void ParticleSimulator::calculateDensities() {
 
             float dist = Magnitude(particle.position - other->position);
 
-            density += SpikyKernelPow2(dist, config.smradius()) * config.mass();
+            density += SpikyKernelPow2(dist, smradius) * mass;
         }
 
         particle.density = density;
@@ -60,8 +59,6 @@ void ParticleSimulator::calculateDensities() {
 void ParticleSimulator::calculateParticleForces() {
 
     parallelize.for_each(pm,[this](Particle& particle) {
-
-        Config& config = Config::get();
 
         sf::Vector2f pressureForce;
         sf::Vector2f viscosityForce;
@@ -73,23 +70,23 @@ void ParticleSimulator::calculateParticleForces() {
             sf::Vector2f dir = particle.position - other->position;
 
             // PRESSURE
-            pressureForce -= Unit(dir) * SharedPressure(particle.density, other->density)
-            * DerivativeSpikyPow2(Magnitude(dir),config.smradius()) * config.mass() / other->density;
+            pressureForce -= Unit(dir) * SharedPressure(particle.density, other->density, targetdensity, pressure)
+            * DerivativeSpikyPow2(Magnitude(dir),smradius) * mass / other->density;
 
             // VISCOSITY
             viscosityForce += (other->velocity - particle.velocity)
-            * CosKernel(Magnitude(dir), config.smradius()) * config.viscosity();
+            * CosKernel(Magnitude(dir), smradius) * viscosity;
         }
 
         // GRAVITY
-        gravityForce = sf::Vector2f(0, config.gravity());
+        gravityForce = sf::Vector2f(0, gravity);
 
         // MOUSE
         sf::Vector2f dirToMouse = circle.getPosition() - particle.position;
         if (isMouseHeld) mouseForce += 
             (isRepelling ? -1 : 1) 
             * CosKernel(Magnitude(dirToMouse), 2*circleradius) 
-            * config.mouse() * Unit(dirToMouse);
+            * mouse * Unit(dirToMouse);
 
         // TOTAL FORCE
         particle.force = pressureForce + viscosityForce + gravityForce + mouseForce;
@@ -111,7 +108,6 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
     if (debug) pm.drawBoxes(window);
 
     // Draw Particles
-    Config& config = Config::get();
     sf::CircleShape particleShape(particleRaduis);
     particleShape.setOrigin(particleRaduis/2,particleRaduis/2);
 
@@ -119,7 +115,7 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
 
         particleShape.setPosition(particle.position);
         particleShape.setFillColor(colorBlend(sf::Color::Cyan,sf::Color::Blue,
-            (particle.density-config.targetdensity())/3));
+            (particle.density-targetdensity)/3));
 
         window.draw(particleShape);
     }
@@ -140,7 +136,6 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
 
     } else if (debug) {
 
-        float smradius = Config::get().smradius();
         sf::CircleShape smRadiusCircle = circle;
         smRadiusCircle.setRadius(smradius);
         smRadiusCircle.setOutlineColor(sf::Color::White);
@@ -150,8 +145,6 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
 }
 
 void ParticleSimulator::moveParticle(Particle& particle, float delta) {
-
-    float collision = Config::get().collision();
 
     sf::Vector2f currPos = particle.position;
     sf::Vector2 moveVec = delta * particle.velocity;
@@ -216,6 +209,29 @@ void ParticleSimulator::moveParticle(Particle& particle, float delta) {
     }
 
     particle.position = newPos;
+}
+
+void ParticleSimulator::setValue(std::string name, float value) {
+    if (name == "smradius") {
+        smradius = value;
+        pm.updateSmRadius(value);
+    } else if (name == "viscosity") {
+        viscosity = value;
+    } else if (name == "gravity") {
+        gravity = value;
+    } else if (name == "mass") {
+        mass = value;
+    } else if (name == "targetdensity") {
+        targetdensity = value;
+    } else if (name == "pressure") {
+        pressure = value;
+    } else if (name == "mouse") {
+        mouse = value;
+    } else if (name == "collision") {
+        collision = value;
+    } else {
+        std::cerr << "Bad name!" << std::endl;
+    }
 }
 
 void ParticleSimulator::onEvent(sf::Event& event, sf::Vector2u size) {

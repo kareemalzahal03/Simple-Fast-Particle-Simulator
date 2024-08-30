@@ -1,6 +1,5 @@
 #pragma once
 #include "particle.hpp"
-#include "config.hpp"
 #include <vector>
 #include <list>
 
@@ -12,6 +11,7 @@ public:
     void addParticle(Particle particle);
     void sortParticles();
     void drawBoxes(sf::RenderWindow& window);
+    void updateSmRadius(float smr);
 
     class ParticleIterator {
     friend class ParticleManager;
@@ -48,15 +48,12 @@ private:
     int getSquareID(sf::Vector2f pos);
     bool isValidSquareID(int squareID);
     std::list<int> getCloseSquareIDs(sf::Vector2f pos);
-    void updateGridVariables();
-    bool outdatedGridVariables();
-    void sort();
 
     const int width;
     const int height;
 
     int particleCount = 0;
-    
+
     float smradius;
     float squareWidth;
     float squareHeight;
