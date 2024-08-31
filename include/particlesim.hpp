@@ -33,8 +33,8 @@ private:
 
     const int width;
     const int height;
-    const int spawn = 2000;
     const int circleradius = 100;
+    const int spawn = 2000;
     const int particleRaduis = 6;
     const sf::Color defaultColor = sf::Color::Cyan;
     const sf::Color repelColor = sf::Color::Red;

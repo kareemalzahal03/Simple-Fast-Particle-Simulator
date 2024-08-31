@@ -15,7 +15,7 @@ public:
     template <typename Func>
     void operator() (Func f) {
         
-        func = f;
+        func = std::move(f);
         runThreads();
     }
 

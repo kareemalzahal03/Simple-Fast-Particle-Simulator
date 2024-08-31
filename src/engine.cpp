@@ -24,30 +24,50 @@ Engine::Engine():
 
 void Engine::run() {
 
-    const sf::Time targetFrameTime = sf::microseconds(1000000/targetfps);
+    std::thread t([this](){
+
+        const sf::Time targetFrameTime = sf::microseconds(1000000/targetFPS);
+        while (window.isOpen()) {
+
+            frameClock.restart();
+            frame();
+            sf::Time frameTime = frameClock.getElapsedTime();
+            accurateSleep(targetFrameTime - frameTime, frameClock);
+            window.updateFPSText();
+        }
+    });
+
+    const sf::Time targetStepTime = sf::microseconds(1000000/targetSPS);
     while (window.isOpen()) {
 
-        // Excecute frame and sleep until target time reached
-        sf::Time frameTime = frame();
-        accurateSleep(targetFrameTime - frameTime);
+        // Excecute step and sleep until target time reached
+        stepClock.restart();
+        step();
+        sf::Time stepTime = stepClock.getElapsedTime();
+        accurateSleep(targetStepTime - stepTime, stepClock);
+        window.updateSPSText();
     }
+
+    t.join();
 }
 
-sf::Time Engine::frame() {
-    clock.restart();
+inline void Engine::step() {
 
     // Process Events
     processEvents();
 
     // Run Simulator Logic
-    particlesim.simStep(1.f/targetfps);
-
-    // Draw
-    displayContent();
-
-    return clock.getElapsedTime();
+    particlesim.simStep(1.f/targetSPS);
 }
 
+inline void Engine::frame() {
+
+    // Draw to window
+    window.clear(sf::Color(100,100,100));
+    particlesim.drawContent(window);
+    window.drawText(targetFPS, targetSPS);
+    window.display();
+}
 
 inline void Engine::processEvents() {
 
@@ -60,15 +80,6 @@ inline void Engine::processEvents() {
         }
         particlesim.onEvent(event, window.getSize());
     }
-}
-
-inline void Engine::displayContent() {
-
-    window.clear(sf::Color(100,100,100));
-    particlesim.drawContent(window);
-    window.updateFPSText(targetfps);
-    window.drawText();
-    window.display();
 }
 
 inline void Engine::onKeyPressed(sf::Keyboard::Key code) {
@@ -116,7 +127,7 @@ inline void Engine::executeCommand(std::string command) {
     }
 }
 
-inline void Engine::accurateSleep(sf::Time time) {
+inline void Engine::accurateSleep(sf::Time time, sf::Clock& clock) {
     clock.restart();
     while (time - clock.getElapsedTime() > sf::seconds(0)) {
         sf::sleep((time - clock.getElapsedTime())/2.f);

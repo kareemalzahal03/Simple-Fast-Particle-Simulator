@@ -21,7 +21,6 @@ public:
         Particle& operator*();
         Particle* operator->();
         ParticleIterator& operator++();
-        void erase();
 
     private:
 
@@ -34,8 +33,7 @@ public:
         std::list<int> closeSquareIDs;
         bool isEnd = false;
         bool isRegional = false;
-        int currentSquareID = 0;
-        std::list<Particle>::iterator particleIT;
+        int nodeIndex = -1;
     };
 
     ParticleIterator begin();
@@ -52,8 +50,6 @@ private:
     const int width;
     const int height;
 
-    int particleCount = 0;
-
     float smradius;
     float squareWidth;
     float squareHeight;
@@ -61,5 +57,17 @@ private:
     int gridWidth;
     int gridHeight;
 
-    std::vector<std::list<Particle>> particlesInSquare;
+    struct PNode {
+        PNode(Particle particle, int squareID, 
+            int next = -1, int prev = -1);
+        Particle particle;
+        int squareID;
+        int next;
+        int prev;
+    };
+
+    std::vector<PNode> particles;
+    std::vector<int> sidHeadIndecies;
+
+    // std::vector<std::list<Particle>> particlesInSquare;
 };

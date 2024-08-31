@@ -10,9 +10,8 @@
 #include <stdlib.h>
 
 ParticleSimulator::ParticleSimulator(int width, int height):
-    width(width), height(height), pm(width, height) {
+    width(width), height(height), pm(width, height) {    
 
-    // Spawn particles
     for (int x = 0; x < spawn; x++) {
         sf::Vector2f randomPos(
             float(rand())/RAND_MAX*width,
