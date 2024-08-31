@@ -12,7 +12,7 @@
 class Engine {
 public:
 
-    Engine();
+    Engine(int width, int height, const char* configfile);
     void run();
 
 private:
@@ -25,12 +25,10 @@ private:
     inline void accurateSleep(sf::Time time, sf::Clock& clock);
     inline void processEvents();
 
-    const int width = 1450;
-    const int height = 900;
-    const int targetSPS = 90;
-    const int targetFPS = 60;
-    const std::string filename = ".config";
-
+    int targetSPS;
+    int targetFPS;
+    int spawn;
+    
     Window window;
     ParticleSimulator particlesim;
     sf::Clock stepClock;

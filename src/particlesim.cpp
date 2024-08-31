@@ -12,19 +12,22 @@
 ParticleSimulator::ParticleSimulator(int width, int height):
     width(width), height(height), pm(width, height) {    
 
-    for (int x = 0; x < spawn; x++) {
-        sf::Vector2f randomPos(
-            float(rand())/RAND_MAX*width,
-            float(rand())/RAND_MAX*height);
-        pm.addParticle(Particle(randomPos));
-    }
-
     // Init circle
     circle.setRadius(circleradius);
     circle.setFillColor(sf::Color::Transparent);
     circle.setOutlineThickness(5);
     circle.setOutlineColor(isRepelling ? repelColor : attractColor);
     circle.setOrigin(sf::Vector2f(circleradius,circleradius));
+}
+
+void ParticleSimulator::addParticles(int count) {
+
+    for (int x = 0; x < count; x++) {
+        sf::Vector2f randomPos(
+            float(rand())/RAND_MAX*width,
+            float(rand())/RAND_MAX*height);
+        pm.addParticle(Particle(randomPos));
+    }
 }
 
 void ParticleSimulator::simStep(float delta) {
@@ -40,7 +43,7 @@ void ParticleSimulator::simStep(float delta) {
 
 void ParticleSimulator::calculateDensities() {
 
-    parallelize.for_each(pm,[this](Particle& particle) {
+    pm.parallel_for_each([this](Particle& particle) {
 
         float density = 0.1;
 
@@ -57,7 +60,7 @@ void ParticleSimulator::calculateDensities() {
 
 void ParticleSimulator::calculateParticleForces() {
 
-    parallelize.for_each(pm,[this](Particle& particle) {
+    pm.parallel_for_each([this](Particle& particle) {
 
         sf::Vector2f pressureForce;
         sf::Vector2f viscosityForce;
@@ -94,7 +97,7 @@ void ParticleSimulator::calculateParticleForces() {
 
 void ParticleSimulator::moveParticles(float delta) {
 
-    parallelize.for_each(pm,[delta,this](Particle& particle) {
+    pm.parallel_for_each([this,delta](Particle& particle) {
 
         sf::Vector2f particle_acceleration = particle.force / particle.density;
         particle.velocity += particle_acceleration * delta;

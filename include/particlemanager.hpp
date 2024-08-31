@@ -1,4 +1,5 @@
 #pragma once
+#include "parallelize.hpp"
 #include "particle.hpp"
 #include <vector>
 #include <list>
@@ -41,11 +42,26 @@ public:
     ParticleIterator begin(sf::Vector2f pos);
     int size();
 
+    template <typename Func>
+    void parallel_for_each(Func func) {
+        parallelize([this, &func](int threadIndex, int threadCount){
+
+            size_t partSize = particles.size() / threadCount;
+            size_t start = threadIndex * partSize;
+            size_t end = (threadIndex == threadCount - 1) ? particles.size() : start + partSize;
+
+            for (size_t i = start; i < end; ++i) {
+                func(particles[i].particle);
+            }
+        });
+    }
+
 private:
 
     int getSquareID(sf::Vector2f pos);
     bool isValidSquareID(int squareID);
     std::list<int> getCloseSquareIDs(sf::Vector2f pos);
+    Parallelize parallelize;
 
     const int width;
     const int height;

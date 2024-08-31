@@ -9,7 +9,6 @@
 #include "engine.hpp"
 
 int main() {
-
-    Engine engine;
+    Engine engine(1450, 900, ".config");
     engine.run();
 }

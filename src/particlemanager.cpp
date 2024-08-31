@@ -5,10 +5,7 @@
 #include <cmath>
 
 ParticleManager::ParticleManager(int width, int height):
-    width(width), height(height) {
-
-    updateSmRadius(50);
-}
+    width(width), height(height) {}
 
 ParticleManager::PNode::PNode(Particle particle, int squareID, int next, int prev):
     particle(particle), squareID(squareID), next(next), prev(prev) {}
@@ -118,47 +115,6 @@ void ParticleManager::sortParticles() {
             sidHeadIndecies[newSquareID] = currIndex;
         }
     }
-
-
-
-    // for (int currSquareID = 0; currSquareID < sidHeadIndecies.size(); currSquareID++) {
-
-    //     for (int currIndex = sidHeadIndecies[currSquareID]; currIndex != -1; currIndex = particles[currIndex].next) {
-        
-    //         PNode& currNode = particles[currIndex];
-    //         int newSquareID = getSquareID(currNode.particle.position);
-
-    //         if (currSquareID != newSquareID) {
-
-    //             // Detatch Node:
-    //             // 1. Attatch prev to next, if no prev, make next head index
-    //             if (currNode.prev != -1) {
-
-    //                 particles[currNode.prev].next = currNode.next;
-
-    //             } else {
-
-    //                 sidHeadIndecies[currSquareID] = currNode.next;
-    //             }
-    //             // 2. Attatch next to prev if exists
-    //             if (currNode.next != -1) {
-
-    //                 particles[currNode.next].prev = currNode.prev;
-    //             }
-
-    //             // Insert currNode to correct squareID
-
-    //             if (sidHeadIndecies[newSquareID] != -1) {
-
-    //                 particles[sidHeadIndecies[newSquareID]].prev = currIndex;
-    //             }
-
-    //             currNode.next = sidHeadIndecies[newSquareID];
-    //             currNode.prev = -1;
-    //             sidHeadIndecies[newSquareID] = currIndex;
-    //         }
-    //     }
-    // }
 }
 
 void ParticleManager::drawBoxes(sf::RenderWindow& window) {

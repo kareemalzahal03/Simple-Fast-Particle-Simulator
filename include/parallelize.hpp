@@ -19,28 +19,6 @@ public:
         runThreads();
     }
 
-    template <typename Iterable, typename Function>
-    void for_each(Iterable& iterable, Function f) {
-
-        func = [&] (int threadIndex, int threadCount) {
-
-            auto begin = iterable.begin();
-            auto end = iterable.end();
-
-            int chunkSize = iterable.size() / threadCount + 1;
-
-            for (int x = threadIndex * chunkSize; x && begin != end; --x)
-                ++begin;
-
-            for (int x = chunkSize; x && begin != end; --x) {
-                f(*begin);
-                ++begin;
-            }
-        };
-
-        runThreads();
-    }
-
 private:
 
     void threadLoop(int threadIndex);

@@ -18,6 +18,8 @@ public:
 
     void setValue(std::string name, float value);
 
+    void addParticles(int count);
+
 private:
 
     void calculateDensities();
@@ -29,12 +31,10 @@ private:
     void moveParticle(Particle& particle, float delta);
 
     ParticleManager pm;
-    Parallelize parallelize;
 
     const int width;
     const int height;
     const int circleradius = 100;
-    const int spawn = 2000;
     const int particleRaduis = 6;
     const sf::Color defaultColor = sf::Color::Cyan;
     const sf::Color repelColor = sf::Color::Red;

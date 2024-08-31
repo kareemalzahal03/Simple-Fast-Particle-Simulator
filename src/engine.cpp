@@ -1,6 +1,6 @@
 #include "engine.hpp"
 
-Engine::Engine():
+Engine::Engine(int width, int height, const char* configfile):
     window(width,height,"Particle Simulator"),
     particlesim(width,height) {
 
@@ -8,10 +8,10 @@ Engine::Engine():
     while (!std::filesystem::exists("resources"))
     std::filesystem::current_path(std::filesystem::current_path().parent_path());
 
-    std::ifstream file(filename);
+    std::ifstream file(configfile);
 
     if (!file) {
-        throw std::runtime_error("Error opening file: " + filename);
+        throw std::runtime_error("Error opening config file!");
     }
 
     std::string command;
@@ -24,26 +24,27 @@ Engine::Engine():
 
 void Engine::run() {
 
+    particlesim.addParticles(spawn);
+
     std::thread t([this](){
 
-        const sf::Time targetFrameTime = sf::microseconds(1000000/targetFPS);
         while (window.isOpen()) {
-
             frameClock.restart();
             frame();
             sf::Time frameTime = frameClock.getElapsedTime();
+            sf::Time targetFrameTime = sf::microseconds(1000000/targetFPS);
             accurateSleep(targetFrameTime - frameTime, frameClock);
             window.updateFPSText();
         }
     });
 
-    const sf::Time targetStepTime = sf::microseconds(1000000/targetSPS);
     while (window.isOpen()) {
 
         // Excecute step and sleep until target time reached
         stepClock.restart();
         step();
         sf::Time stepTime = stepClock.getElapsedTime();
+        sf::Time targetStepTime = sf::microseconds(1000000/targetSPS);
         accurateSleep(targetStepTime - stepTime, stepClock);
         window.updateSPSText();
     }
@@ -105,21 +106,22 @@ inline void Engine::onKeyPressed(sf::Keyboard::Key code) {
 inline void Engine::executeCommand(std::string command) {
 
     std::istringstream iss(command);
-    std::string name;
+    std::string varname;
     float value;
-    bool gotName = iss >> name ? true : false;
+    bool gotVarName = iss >> varname ? true : false;
     bool gotValue = iss >> value ? true : false;
 
-    // Read name and value from the command
-    if (gotName && !gotValue) {
+    if (gotVarName && gotValue) {
 
-        // Pause, stop, etc.
-
-    } else if (gotName && gotValue) {
-
-        // Check any engine commands that takes values
-        // otherwise, pass command to particlesim
-        particlesim.setValue(name, value);
+        if (varname == "spawn") {
+            spawn = value;
+        } else if (varname == "targetsps") {
+            targetSPS = value;
+        } else if (varname == "targetfps") {
+            targetFPS = value;
+        } else {
+            particlesim.setValue(varname, value);
+        }
 
     } else if (!command.empty()) {
 
