@@ -1,9 +1,12 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <stdlib.h>
+#include <cmath>
 #include "window.hpp"
-#include "particle.hpp"
 #include "particlemanager.hpp"
 #include "parallelize.hpp"
+#include "mathfunctions.hpp"
 
 class ParticleSimulator {
 public:
@@ -25,10 +28,6 @@ private:
     void calculateDensities();
 
     void calculateParticleForces();
-
-    void moveParticles(float delta);
-
-    void moveParticle(Particle& particle, float delta);
 
     ParticleManager pm;
 

@@ -8,17 +8,11 @@ Engine::Engine(int width, int height, const char* configfile):
     while (!std::filesystem::exists("resources"))
     std::filesystem::current_path(std::filesystem::current_path().parent_path());
 
+    // Load Config File
     std::ifstream file(configfile);
-
-    if (!file) {
-        throw std::runtime_error("Error opening config file!");
-    }
-
+    if (!file) throw std::runtime_error("Error opening config file!");
     std::string command;
-    while (std::getline(file, command)) {
-        executeCommand(command);
-    }
-
+    while (std::getline(file, command)) executeCommand(command);
     file.close();
 }
 
@@ -64,7 +58,8 @@ inline void Engine::step() {
 inline void Engine::frame() {
 
     // Draw to window
-    window.clear(sf::Color(100,100,100));
+    window.clear();
+    window.drawBackground();
     particlesim.drawContent(window);
     window.drawText(targetFPS, targetSPS);
     window.display();

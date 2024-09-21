@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <string>
+#include <filesystem>
+#include <iostream>
 
 class Window : public sf::RenderWindow {
 public:
@@ -11,6 +13,8 @@ public:
 
     // Draw the FPS, command to the top left of the screen.
     void drawText(int targetFPS, int targetSPS);
+
+    void drawBackground();
 
     void updateCommandText(std::string command);
 
@@ -28,4 +32,6 @@ private:
     sf::Text fpsText;
     sf::Text spsText;
     sf::Font font;
+    sf::Texture backgroundTexture;
+    sf::Sprite backgroundSprite;
 };

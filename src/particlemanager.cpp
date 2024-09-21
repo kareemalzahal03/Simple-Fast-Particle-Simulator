@@ -1,16 +1,20 @@
-#include "particle.hpp"
 #include "particlemanager.hpp"
-#include <vector>
-#include <iostream>
-#include <cmath>
+
+Particle::Particle(sf::Vector2f position, int squareID, idx next): 
+    position(position), squareID(squareID), next(next) {}
 
 ParticleManager::ParticleManager(int width, int height):
-    width(width), height(height) {}
+    width(width), height(height) {
 
-ParticleManager::PNode::PNode(Particle particle, int squareID, int next, int prev):
-    particle(particle), squareID(squareID), next(next), prev(prev) {}
+    // Load shader
+    loadShader("gradient.frag");
+    
+    // Set Default Values
+    setSmRadius(50);
+    setParticleColor(sf::Color(0,200,255,70));
+}
 
-void ParticleManager::updateSmRadius(float smr) {
+void ParticleManager::setSmRadius(float smr) {
 
     smradius = smr;
 
@@ -21,59 +25,49 @@ void ParticleManager::updateSmRadius(float smr) {
     squareWidth = float(width)/gridWidth;
     squareHeight = float(height)/gridHeight;
 
-    sidHeadIndecies.resize(numSquares,-1);
+    headIdx.resize(numSquares);
     sortParticles();
+
+    setShaderSmRadius(smr);
+}
+
+void ParticleManager::setParticleColor(sf::Color color) {
+    setShaderColor(color);
 }
 
 int ParticleManager::getSquareID(sf::Vector2f pos) {
 
     if (std::isnan(pos.x) || std::isnan(pos.y)) 
-        throw std::runtime_error("Shit! We lost one!");
+        throw std::runtime_error("We lost one!");
 
-    int x = pos.x/squareWidth;
-    int y = pos.y/squareHeight;    
-    y -= (y == gridHeight);
-    x -= (x == gridWidth);
+    int x = std::min(int(pos.x/squareWidth), gridWidth-1);
+    int y = std::min(int(pos.y/squareHeight), gridHeight-1);
 
     return y * gridWidth + x;
 }
 
-std::list<int> ParticleManager::getCloseSquareIDs(sf::Vector2f pos) {
-    std::list<int> closeSquareIDs;
-
-    int x = pos.x/squareWidth; x -= (x == gridWidth);
-    int y = pos.y/squareHeight; y -= (y == gridHeight);
-
-    if (!isValidSquareID(y * gridWidth + x)) return {};
-
-    for (int w = x-1; w <= x+1; ++w) {
-        for (int h = y-1; h <= y+1; ++h) {
-            if (0 <= w && w < gridWidth && 0 <= h && h < gridHeight)
-                closeSquareIDs.push_back(h * gridWidth + w);
-        }
-    }
-
-    return closeSquareIDs;
+bool ParticleManager::validCoords(int x, int y) {
+    return 0 <= x && x < gridWidth && 0 <= y && y < gridHeight;
 }
 
 bool ParticleManager::isValidSquareID(int squareID) {
     return 0 <= squareID && squareID < numSquares;
 }
 
-void ParticleManager::addParticle(Particle p) {
+void ParticleManager::addParticle(sf::Vector2f pos) {
 
-    int squareID = getSquareID(p.position);
-    int index = particles.size();
+    int squareID = getSquareID(pos);
+    idx newIndex = particles.size();
 
-    if (sidHeadIndecies[squareID] != -1) {
-        particles[sidHeadIndecies[squareID]].prev = index;
+    if (headIdx[squareID]) {
+        particles[headIdx[squareID]].prev = newIndex;
     }
     
-    particles.push_back(PNode(p,squareID,sidHeadIndecies[squareID]));
-    sidHeadIndecies[squareID] = index;
+    particles.push_back(Particle(pos,squareID,headIdx[squareID]));
+    headIdx[squareID] = newIndex;    
 }
 
-int ParticleManager::size() {
+std::size_t ParticleManager::size() {
     return particles.size();
 }
 
@@ -81,122 +75,209 @@ void ParticleManager::sortParticles() {
 
     for (int currIndex = 0; currIndex < particles.size(); ++currIndex) {
 
-        PNode& currNode = particles[currIndex];
-        int newSquareID = getSquareID(currNode.particle.position);
+        Particle& p = particles[currIndex];
+        int newSquareID = getSquareID(p.position);
 
-        if (currNode.squareID != newSquareID) {
+        if (p.squareID != newSquareID) {
 
             // Detatch Node:
             // 1. Attatch prev to next, if no prev, make next head index
-            if (currNode.prev != -1) {
-
-                particles[currNode.prev].next = currNode.next;
-
-            } else {
-
-                sidHeadIndecies[currNode.squareID] = currNode.next;
-            }
+            if (p.prev)
+                particles[p.prev].next = p.next;
+            else
+                headIdx[p.squareID] = p.next;
+        
             // 2. Attatch next to prev if exists
-            if (currNode.next != -1) {
+            if (p.next) 
+                particles[p.next].prev = p.prev;
+            
+            // Insert p to correct squareID
+            if (headIdx[newSquareID])
+                particles[headIdx[newSquareID]].prev = currIndex;
 
-                particles[currNode.next].prev = currNode.prev;
-            }
-
-            // Insert currNode to correct squareID
-
-            if (sidHeadIndecies[newSquareID] != -1) {
-
-                particles[sidHeadIndecies[newSquareID]].prev = currIndex;
-            }
-
-            currNode.next = sidHeadIndecies[newSquareID];
-            currNode.prev = -1;
-            currNode.squareID = newSquareID;
-            sidHeadIndecies[newSquareID] = currIndex;
+            p.next = headIdx[newSquareID];
+            p.prev = idx();
+            p.squareID = newSquareID;
+            headIdx[newSquareID] = currIndex;
         }
     }
 }
 
-void ParticleManager::drawBoxes(sf::RenderWindow& window) {
+void ParticleManager::moveParticles(float delta, float collision) {
 
-    sf::RectangleShape r(sf::Vector2f(squareWidth,squareHeight));
-    r.setFillColor(sf::Color(0,0,0,0));
-    r.setOutlineColor(sf::Color::White);
-    r.setOutlineThickness(1);
+    for (Particle& particle : particles) {
 
-    for (int x = 0; x < gridWidth; ++x) {
-        for (int y = 0; y < gridHeight; ++y) {
-            r.setPosition(sf::Vector2f(x*squareWidth, y*squareHeight));
-            window.draw(r);
+        sf::Vector2f currPos = particle.position;
+        sf::Vector2 moveVec = delta * particle.velocity;
+        sf::Vector2f newPos = currPos + moveVec;
+
+        // Collision Logic
+        while (newPos.x < 0 || newPos.x > width || newPos.y < 0 || newPos.y > height) {
+
+            if (newPos.x < 0) {
+
+                sf::Vector2f collisionPos(0,(-currPos.x)*moveVec.y/moveVec.x+currPos.y);
+
+                if (0 <= collisionPos.y && collisionPos.y <= height) {
+
+                    currPos = collisionPos;
+                    moveVec = collision*(newPos-currPos);
+                    moveVec.x *= -1;
+                    particle.velocity.x *= - 1;
+                }
+            }
+            
+            if (newPos.x > width) {
+
+                sf::Vector2f collisionPos(width,(width-currPos.x)*moveVec.y/moveVec.x+currPos.y);
+
+                if (0 <= collisionPos.y && collisionPos.y <= height) {
+
+                    currPos = collisionPos;
+                    moveVec = collision*(newPos-currPos);
+                    moveVec.x *= -1;
+                    particle.velocity.x *= - 1;
+                }
+            }
+            
+            if (newPos.y < 0) {
+
+                sf::Vector2f collisionPos((-currPos.y)*moveVec.x/moveVec.y+currPos.x,0);
+
+                if (0 <= collisionPos.x && collisionPos.x <= width) {
+
+                    currPos = collisionPos;
+                    moveVec = collision*(newPos-currPos);
+                    moveVec.y *= -1;
+                    particle.velocity.y *= - 1;
+                }
+            }
+            
+            if (newPos.y > height) {
+
+                sf::Vector2f collisionPos((height-currPos.y)*moveVec.x/moveVec.y+currPos.x,height);
+                
+                if (0 <= collisionPos.x && collisionPos.x <= width) {
+
+                    currPos = collisionPos;
+                    moveVec = collision*(newPos-currPos);
+                    moveVec.y *= -1;
+                    particle.velocity.y *= - 1;
+                }
+            }
+
+            particle.velocity *= collision;
+            newPos = currPos + moveVec;
         }
+
+        particle.position = newPos;
     }
+
+    sortParticles();
 }
 
-// Iterator ///////////////////
+// Neigbor Iterator ///////////////////
 
-bool ParticleManager::ParticleIterator::operator!=(const ParticleIterator& other) const {
-
-    if (isEnd && other.isEnd) return false;
-    else if (isEnd || other.isEnd) return true;
-    else return nodeIndex != other.nodeIndex;
+ParticleManager::Neighbors ParticleManager::neighbors(sf::Vector2f pos) {
+    return Neighbors(*this,pos);
 }
 
-Particle& ParticleManager::ParticleIterator::operator*() {
-    return pm->particles[nodeIndex].particle;
+ParticleManager::Neighbors ParticleManager::neighbors(Particle& p) {
+    return Neighbors(*this,p.position);
 }
 
-Particle* ParticleManager::ParticleIterator::operator->() {
-    return &(pm->particles[nodeIndex].particle);
+ParticleManager::Neighbors::Neighbors(ParticleManager& pm):
+    pm(pm), atEnd(true) {}
+
+ParticleManager::Neighbors::Neighbors(ParticleManager& pm, sf::Vector2f pos):
+    pm(pm) {
+
+    int middle_x = std::min(int(pos.x/pm.squareWidth), pm.gridWidth-1);
+    int middle_y = std::min(int(pos.y/pm.squareHeight), pm.gridHeight-1);
+
+    // Add 9 neighboring squares
+    if (pm.validCoords(middle_x,middle_y))
+    for (int i = 0; i < 9; ++i) {
+        int x = middle_x-1+i%3;
+        int y = middle_y-1+i/3;
+        if (pm.validCoords(x,y))
+            closeHeadIdx[i] = pm.headIdx[y * pm.gridWidth + x];
+    }
+
+    this->operator++();
 }
 
-ParticleManager::ParticleIterator& ParticleManager::ParticleIterator::operator++() {
+Particle& ParticleManager::Neighbors::operator*() {
+    return pm.particles[particleIdx];
+}
+
+ParticleManager::Neighbors& ParticleManager::Neighbors::operator++() {
+
+    if (particleIdx)
+        particleIdx = pm.particles[particleIdx].next;
+
+    while (!particleIdx && n < 9)
+        particleIdx = closeHeadIdx[n++];
     
-    if (isEnd) throw std::runtime_error("operator++ used on end()!");
-
-    if (isRegional) {
-
-        nodeIndex = pm->particles[nodeIndex].next;
-
-        while (nodeIndex == -1 && !closeSquareIDs.empty()) {
-            nodeIndex = pm->sidHeadIndecies[closeSquareIDs.front()];
-            closeSquareIDs.pop_front();
-        }
-
-        isEnd = (nodeIndex == -1);
-
-    } else {
-
-        nodeIndex++;
-        isEnd = (nodeIndex == pm->particles.size());
-    }
-
+    atEnd = !particleIdx;
+    
     return *this;
 }
 
-ParticleManager::ParticleIterator::ParticleIterator(ParticleManager* pm, sf::Vector2f pos):
-pm{pm}, isRegional{true}, closeSquareIDs{pm->getCloseSquareIDs(pos)} {
+bool ParticleManager::Neighbors::operator!=(const Neighbors& other) const {
+    return (!atEnd || !other.atEnd) &&
+        (atEnd != other.atEnd || particleIdx != other.particleIdx);
+}
+
+ParticleManager::Neighbors ParticleManager::Neighbors::begin() {
+    return *this;
+}
+
+ParticleManager::Neighbors ParticleManager::Neighbors::end() const {
+    return Neighbors(pm);
+}
+
+// Drawing /////////////////
+
+void ParticleManager::loadShader(const char* file) {
+    // For cross platform use
+    while (!std::filesystem::exists("resources"))
+    std::filesystem::current_path(std::filesystem::current_path().parent_path());
+
+    if (!m_shader.loadFromFile(file, sf::Shader::Fragment))
+        throw std::runtime_error("Failed to load shader");
+}
+
+void ParticleManager::setShaderColor(sf::Color color) {
+    m_shader.setUniform("c", sf::Glsl::Vec4(color));
+}
+
+void ParticleManager::setShaderSmRadius(float smr) {
+    m_shape.setSize(sf::Vector2f(2*smr,2*smr));
+    m_shape.setOrigin(smr, smr);
+    m_shader.setUniform("r", smr);
+}
+
+void ParticleManager::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     
-    while (nodeIndex == -1 && !closeSquareIDs.empty()) {
-        nodeIndex = pm->sidHeadIndecies[closeSquareIDs.front()];
-        closeSquareIDs.pop_front();
+    if (drawGrid) {
+        sf::RectangleShape r(sf::Vector2f(squareWidth,squareHeight));
+        r.setFillColor(sf::Color(0,0,0,0));
+        r.setOutlineColor(sf::Color::White);
+        r.setOutlineThickness(1);
+
+        for (int x = 0; x < gridWidth; ++x) {
+            for (int y = 0; y < gridHeight; ++y) {
+                r.setPosition(sf::Vector2f(x*squareWidth, y*squareHeight));
+                target.draw(r,states);
+            }
+        }
     }
-
-    isEnd = (nodeIndex == -1);
-}
-
-ParticleManager::ParticleIterator::ParticleIterator(ParticleManager* pm):
-pm{pm}, nodeIndex{0}, isEnd{pm->particles.empty()} {}
-
-ParticleManager::ParticleIterator::ParticleIterator(): isEnd{true} {}
-
-ParticleManager::ParticleIterator ParticleManager::begin(sf::Vector2f pos) {
-    return ParticleIterator(this, pos);
-}
-
-ParticleManager::ParticleIterator ParticleManager::begin() {
-    return ParticleIterator(this);
-}
-
-ParticleManager::ParticleIterator ParticleManager::end() {
-    return ParticleIterator();
+    
+    states.shader = &m_shader;
+    for (const Particle& p : particles) {
+        m_shape.setPosition(p.position);
+        m_shader.setUniform("p", sf::Glsl::Vec2(p.position.x,height-p.position.y));
+        target.draw(m_shape, states);
+    }
 }

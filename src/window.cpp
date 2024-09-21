@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include "window.hpp"
-#include <filesystem>
 
 Window::Window(int width, int height, const sf::String title) 
 : sf::RenderWindow(sf::VideoMode(width, height), title) {
@@ -14,23 +13,32 @@ Window::Window(int width, int height, const sf::String title)
     fpsText.setFont(font);
     fpsText.setCharacterSize(20);
     fpsText.setOutlineColor(sf::Color::Black);
-    fpsText.setOutlineThickness(1);
+    fpsText.setOutlineThickness(2);
     fpsText.setFillColor(sf::Color::White);
 
     spsText.setFont(font);
     spsText.setCharacterSize(20);
     spsText.setOutlineColor(sf::Color::Black);
-    spsText.setOutlineThickness(1);
+    spsText.setOutlineThickness(2);
     spsText.setFillColor(sf::Color::White);
     spsText.setPosition(100,0);
 
     commandText.setFont(font);
     commandText.setCharacterSize(20);
     commandText.setOutlineColor(sf::Color::Black);
-    commandText.setOutlineThickness(1);
+    commandText.setOutlineThickness(2);
     commandText.setFillColor(sf::Color::White);
     commandText.setPosition(200,0);
     commandText.setString("> Type a command...");
+
+    if (!backgroundTexture.loadFromFile("resources/tiles.jpg"))
+        std::cerr << "Error: Could not load background image." << std::endl;
+    else    
+        backgroundSprite.setTexture(backgroundTexture);
+}
+
+void Window::drawBackground() {
+    draw(backgroundSprite);
 }
 
 void Window::drawText(int targetFPS, int targetSPS) {

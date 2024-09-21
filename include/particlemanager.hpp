@@ -1,46 +1,42 @@
 #pragma once
+#include <SFML/Graphics.hpp>
 #include "parallelize.hpp"
-#include "particle.hpp"
+#include "idx.hpp"
 #include <vector>
-#include <list>
+#include <iostream>
+#include <cmath>
+#include <filesystem>
 
-class ParticleManager {
-friend class ParticleIterator;
+class Particle {
+public:
+
+    sf::Vector2f velocity;
+    sf::Vector2f force;
+    float density;
+
+    sf::Vector2f getPosition() const { return position; }
+
+private:
+friend class ParticleManager;
+
+    explicit Particle(sf::Vector2f position, int squareID, idx next);
+    sf::Vector2f position;
+    int squareID;
+    idx next;
+    idx prev;
+};
+
+class ParticleManager : public sf::Drawable {
 public:
 
     ParticleManager(int width, int height);
-    void addParticle(Particle particle);
-    void sortParticles();
-    void drawBoxes(sf::RenderWindow& window);
-    void updateSmRadius(float smr);
-
-    class ParticleIterator {
-    friend class ParticleManager;
-    public:
-
-        bool operator!=(const ParticleIterator& other) const;
-        Particle& operator*();
-        Particle* operator->();
-        ParticleIterator& operator++();
-
-    private:
-
-        ParticleIterator();
-        ParticleIterator(ParticleManager* pm);
-        ParticleIterator(ParticleManager* pm, sf::Vector2f pos);
-        void advanceToValid();
-
-        ParticleManager* pm;
-        std::list<int> closeSquareIDs;
-        bool isEnd = false;
-        bool isRegional = false;
-        int nodeIndex = -1;
-    };
-
-    ParticleIterator begin();
-    ParticleIterator end();
-    ParticleIterator begin(sf::Vector2f pos);
-    int size();
+    void addParticle(sf::Vector2f pos);
+    
+    void moveParticles(float delta, float collision);
+    void setSmRadius(float smr);
+    void setParticleColor(sf::Color color);
+    
+    std::size_t size();
 
     template <typename Func>
     void parallel_for_each(Func func) {
@@ -51,16 +47,48 @@ public:
             size_t end = (threadIndex == threadCount - 1) ? particles.size() : start + partSize;
 
             for (size_t i = start; i < end; ++i) {
-                func(particles[i].particle);
+                func(particles[i]);
             }
         });
     }
 
+    // Neighbor Iterator
+
+    class Neighbors {
+    public:
+
+        Particle& operator*();
+        Neighbors& operator++();
+        bool operator!=(const Neighbors& other) const;
+        Neighbors begin();
+        Neighbors end() const;
+
+    private:
+    friend ParticleManager;
+
+        Neighbors(ParticleManager& pm);
+        Neighbors(ParticleManager& pm, sf::Vector2f pos);
+
+        idx closeHeadIdx[9];
+        int n = 0;
+        ParticleManager& pm; 
+        idx particleIdx;
+        bool atEnd;
+    };
+
+    Neighbors neighbors(sf::Vector2f pos);
+    Neighbors neighbors(Particle& p);
+
+    auto begin() { return particles.begin(); }
+    auto end() { return particles.end(); }
+
 private:
 
     int getSquareID(sf::Vector2f pos);
+    // bool isValidPos(sf::Vector2f pos);
+    void sortParticles(); //
+    bool validCoords(int x, int y);
     bool isValidSquareID(int squareID);
-    std::list<int> getCloseSquareIDs(sf::Vector2f pos);
     Parallelize parallelize;
 
     const int width;
@@ -73,17 +101,26 @@ private:
     int gridWidth;
     int gridHeight;
 
-    struct PNode {
-        PNode(Particle particle, int squareID, 
-            int next = -1, int prev = -1);
-        Particle particle;
-        int squareID;
-        int next;
-        int prev;
-    };
 
-    std::vector<PNode> particles;
-    std::vector<int> sidHeadIndecies;
+    // struct ParticleNode {
+    //     int squareID;
+    //     idx next;
+    //     idx prev;
+    // };
 
-    // std::vector<std::list<Particle>> particlesInSquare;
+    std::vector<Particle> particles;
+    // std::vector<ParticleNode> nodes;
+    std::vector<idx> headIdx;
+
+    // Drawing
+
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
+    void loadShader(const char* file);
+    void setShaderColor(sf::Color color);
+    void setShaderSmRadius(float smr);
+
+    bool drawGrid = false;
+    mutable sf::Shader m_shader;
+    mutable sf::RectangleShape m_shape;
 };

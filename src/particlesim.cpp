@@ -1,13 +1,4 @@
-#include <SFML/Graphics.hpp>
-#include <cmath>
-#include <thread>
 #include "particlesim.hpp"
-#include "window.hpp"
-#include "particle.hpp"
-#include "particlemanager.hpp"
-#include <iostream>
-#include "mathfunctions.hpp"
-#include <stdlib.h>
 
 ParticleSimulator::ParticleSimulator(int width, int height):
     width(width), height(height), pm(width, height) {    
@@ -26,7 +17,7 @@ void ParticleSimulator::addParticles(int count) {
         sf::Vector2f randomPos(
             float(rand())/RAND_MAX*width,
             float(rand())/RAND_MAX*height);
-        pm.addParticle(Particle(randomPos));
+        pm.addParticle(randomPos);
     }
 }
 
@@ -35,10 +26,13 @@ void ParticleSimulator::simStep(float delta) {
     calculateDensities();
 
     calculateParticleForces();
-    
-    moveParticles(delta);
 
-    pm.sortParticles();
+    for (Particle& particle : pm) {
+        sf::Vector2f particle_acceleration = particle.force / particle.density;
+        particle.velocity += particle_acceleration * delta;
+    }
+
+    pm.moveParticles(delta,collision);
 }
 
 void ParticleSimulator::calculateDensities() {
@@ -47,9 +41,9 @@ void ParticleSimulator::calculateDensities() {
 
         float density = 0.1;
 
-        for (auto other = pm.begin(particle.position); other != pm.end(); ++other) {
+        for (const Particle& other : pm.neighbors(particle)) {
 
-            float dist = Magnitude(particle.position - other->position);
+            float dist = Magnitude(particle.getPosition() - other.getPosition());
 
             density += SpikyKernelPow2(dist, smradius) * mass;
         }
@@ -67,16 +61,17 @@ void ParticleSimulator::calculateParticleForces() {
         sf::Vector2f gravityForce;
         sf::Vector2f mouseForce;
     
-        for (auto other = pm.begin(particle.position); other != pm.end(); ++other) {
+        // for (auto other = pm.begin(particle.position); other != pm.end(); ++other) {
+        for (const Particle& other : pm.neighbors(particle)) {
 
-            sf::Vector2f dir = particle.position - other->position;
+            sf::Vector2f dir = particle.getPosition() - other.getPosition();
 
             // PRESSURE
-            pressureForce -= Unit(dir) * SharedPressure(particle.density, other->density, targetdensity, pressure)
-            * DerivativeSpikyPow2(Magnitude(dir),smradius) * mass / other->density;
+            pressureForce -= Unit(dir) * SharedPressure(particle.density, other.density, targetdensity, pressure)
+            * DerivativeSpikyPow2(Magnitude(dir),smradius) * mass / other.density;
 
             // VISCOSITY
-            viscosityForce += (other->velocity - particle.velocity)
+            viscosityForce += (other.velocity - particle.velocity)
             * CosKernel(Magnitude(dir), smradius) * viscosity;
         }
 
@@ -84,7 +79,7 @@ void ParticleSimulator::calculateParticleForces() {
         gravityForce = sf::Vector2f(0, gravity);
 
         // MOUSE
-        sf::Vector2f dirToMouse = circle.getPosition() - particle.position;
+        sf::Vector2f dirToMouse = circle.getPosition() - particle.getPosition();
         if (isMouseHeld) mouseForce += 
             (isRepelling ? -1 : 1) 
             * CosKernel(Magnitude(dirToMouse), 2*circleradius) 
@@ -95,37 +90,38 @@ void ParticleSimulator::calculateParticleForces() {
     });
 }
 
-void ParticleSimulator::moveParticles(float delta) {
+// void ParticleSimulator::moveParticles(float delta) {
 
-    pm.parallel_for_each([this,delta](Particle& particle) {
+//     pm.parallel_for_each([this,delta](Particle& particle) {
 
-        sf::Vector2f particle_acceleration = particle.force / particle.density;
-        particle.velocity += particle_acceleration * delta;
-        moveParticle(particle, delta);
-    });
-}
+//         sf::Vector2f particle_acceleration = particle.force / particle.density;
+//         particle.velocity += particle_acceleration * delta;
+//         moveParticle(particle, delta);
+//     });
+// }
 
 void ParticleSimulator::drawContent(sf::RenderWindow& window) {    
     
-    if (debug) pm.drawBoxes(window);
-
     // Draw Particles
     sf::CircleShape particleShape(particleRaduis);
     particleShape.setOrigin(particleRaduis/2,particleRaduis/2);
 
-    for (auto& particle : pm) {
+    // for (auto& particle : pm) {
 
-        particleShape.setPosition(particle.position);
-        particleShape.setFillColor(colorBlend(sf::Color::Cyan,sf::Color::Blue,
-            (particle.density-targetdensity)/3));
+    //     particleShape.setPosition(particle.position);
+    //     particleShape.setFillColor(colorBlend(sf::Color::Cyan,sf::Color::Blue,
+    //         (particle.density-targetdensity)/3));
 
-        window.draw(particleShape);
-    }
+    //     window.draw(particleShape);
+    // }
+
+    window.draw(pm);
 
     if (debug && !isMouseHeld) 
-    for (auto p = pm.begin(circle.getPosition()); p != pm.end(); ++p) {
+    // for (auto p = pm.begin(circle.getPosition()); p != pm.end(); ++p) {
+    for (const Particle& p : pm.neighbors(circle.getPosition())) {
 
-        particleShape.setPosition(p->position);
+        particleShape.setPosition(p.getPosition());
         particleShape.setFillColor(sf::Color::Red);
 
         window.draw(particleShape);
@@ -146,77 +142,10 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
     }
 }
 
-void ParticleSimulator::moveParticle(Particle& particle, float delta) {
-
-    sf::Vector2f currPos = particle.position;
-    sf::Vector2 moveVec = delta * particle.velocity;
-    sf::Vector2f newPos = currPos + moveVec;
-
-    while (newPos.x < 0 || newPos.x > width || newPos.y < 0 || newPos.y > height) {
-
-        if (newPos.x < 0) {
-
-            sf::Vector2f collisionPos(0,(-currPos.x)*moveVec.y/moveVec.x+currPos.y);
-
-            if (0 <= collisionPos.y && collisionPos.y <= height) {
-
-                currPos = collisionPos;
-                moveVec = collision*(newPos-currPos);
-                moveVec.x *= -1;
-                particle.velocity.x *= - 1;
-            }
-        }
-        
-        if (newPos.x > width) {
-
-            sf::Vector2f collisionPos(width,(width-currPos.x)*moveVec.y/moveVec.x+currPos.y);
-
-            if (0 <= collisionPos.y && collisionPos.y <= height) {
-
-                currPos = collisionPos;
-                moveVec = collision*(newPos-currPos);
-                moveVec.x *= -1;
-                particle.velocity.x *= - 1;
-            }
-        }
-        
-        if (newPos.y < 0) {
-
-            sf::Vector2f collisionPos((-currPos.y)*moveVec.x/moveVec.y+currPos.x,0);
-
-            if (0 <= collisionPos.x && collisionPos.x <= width) {
-
-                currPos = collisionPos;
-                moveVec = collision*(newPos-currPos);
-                moveVec.y *= -1;
-                particle.velocity.y *= - 1;
-            }
-        }
-        
-        if (newPos.y > height) {
-
-            sf::Vector2f collisionPos((height-currPos.y)*moveVec.x/moveVec.y+currPos.x,height);
-            
-            if (0 <= collisionPos.x && collisionPos.x <= width) {
-
-                currPos = collisionPos;
-                moveVec = collision*(newPos-currPos);
-                moveVec.y *= -1;
-                particle.velocity.y *= - 1;
-            }
-        }
-
-        particle.velocity *= collision;
-        newPos = currPos + moveVec;
-    }
-
-    particle.position = newPos;
-}
-
 void ParticleSimulator::setValue(std::string name, float value) {
     if (name == "smradius") {
         smradius = value;
-        pm.updateSmRadius(value);
+        pm.setSmRadius(value);
     } else if (name == "viscosity") {
         viscosity = value;
     } else if (name == "gravity") {
