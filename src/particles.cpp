@@ -1,20 +1,20 @@
-#include "particlemanager.hpp"
+#include "particles.hpp"
 
 Particle::Particle(sf::Vector2f position, int squareID, idx next): 
     position(position), squareID(squareID), next(next) {}
 
-ParticleManager::ParticleManager(int width, int height):
-    width(width), height(height) {
+Particles::Particles(int width, int height):
+    width(width), height(height), parallel_for_each(particles) {
 
     // Load shader
     loadShader("gradient.frag");
     
     // Set Default Values
     setSmRadius(50);
-    setParticleColor(sf::Color(0,200,255,70));
+    setParticleColor(sf::Color(0,200,255,150));
 }
 
-void ParticleManager::setSmRadius(float smr) {
+void Particles::setSmRadius(float smr) {
 
     smradius = smr;
 
@@ -31,11 +31,11 @@ void ParticleManager::setSmRadius(float smr) {
     setShaderSmRadius(smr);
 }
 
-void ParticleManager::setParticleColor(sf::Color color) {
+void Particles::setParticleColor(sf::Color color) {
     setShaderColor(color);
 }
 
-int ParticleManager::getSquareID(sf::Vector2f pos) {
+int Particles::getSquareID(sf::Vector2f pos) {
 
     if (std::isnan(pos.x) || std::isnan(pos.y)) 
         throw std::runtime_error("We lost one!");
@@ -46,15 +46,15 @@ int ParticleManager::getSquareID(sf::Vector2f pos) {
     return y * gridWidth + x;
 }
 
-bool ParticleManager::validCoords(int x, int y) {
+bool Particles::validCoords(int x, int y) {
     return 0 <= x && x < gridWidth && 0 <= y && y < gridHeight;
 }
 
-bool ParticleManager::isValidSquareID(int squareID) {
+bool Particles::isValidSquareID(int squareID) {
     return 0 <= squareID && squareID < numSquares;
 }
 
-void ParticleManager::addParticle(sf::Vector2f pos) {
+void Particles::addParticle(sf::Vector2f pos) {
 
     int squareID = getSquareID(pos);
     idx newIndex = particles.size();
@@ -67,11 +67,11 @@ void ParticleManager::addParticle(sf::Vector2f pos) {
     headIdx[squareID] = newIndex;    
 }
 
-std::size_t ParticleManager::size() {
+std::size_t Particles::size() {
     return particles.size();
 }
 
-void ParticleManager::sortParticles() {
+void Particles::sortParticles() {
 
     for (int currIndex = 0; currIndex < particles.size(); ++currIndex) {
 
@@ -103,7 +103,7 @@ void ParticleManager::sortParticles() {
     }
 }
 
-void ParticleManager::moveParticles(float delta, float collision) {
+void Particles::moveParticles(float delta, float collision) {
 
     for (Particle& particle : particles) {
 
@@ -178,18 +178,18 @@ void ParticleManager::moveParticles(float delta, float collision) {
 
 // Neigbor Iterator ///////////////////
 
-ParticleManager::Neighbors ParticleManager::neighbors(sf::Vector2f pos) {
+Particles::Neighbors Particles::neighbors(sf::Vector2f pos) {
     return Neighbors(*this,pos);
 }
 
-ParticleManager::Neighbors ParticleManager::neighbors(Particle& p) {
+Particles::Neighbors Particles::neighbors(Particle& p) {
     return Neighbors(*this,p.position);
 }
 
-ParticleManager::Neighbors::Neighbors(ParticleManager& pm):
+Particles::Neighbors::Neighbors(Particles& pm):
     pm(pm), atEnd(true) {}
 
-ParticleManager::Neighbors::Neighbors(ParticleManager& pm, sf::Vector2f pos):
+Particles::Neighbors::Neighbors(Particles& pm, sf::Vector2f pos):
     pm(pm) {
 
     int middle_x = std::min(int(pos.x/pm.squareWidth), pm.gridWidth-1);
@@ -207,11 +207,11 @@ ParticleManager::Neighbors::Neighbors(ParticleManager& pm, sf::Vector2f pos):
     this->operator++();
 }
 
-Particle& ParticleManager::Neighbors::operator*() {
+Particle& Particles::Neighbors::operator*() {
     return pm.particles[particleIdx];
 }
 
-ParticleManager::Neighbors& ParticleManager::Neighbors::operator++() {
+Particles::Neighbors& Particles::Neighbors::operator++() {
 
     if (particleIdx)
         particleIdx = pm.particles[particleIdx].next;
@@ -224,22 +224,22 @@ ParticleManager::Neighbors& ParticleManager::Neighbors::operator++() {
     return *this;
 }
 
-bool ParticleManager::Neighbors::operator!=(const Neighbors& other) const {
+bool Particles::Neighbors::operator!=(const Neighbors& other) const {
     return (!atEnd || !other.atEnd) &&
         (atEnd != other.atEnd || particleIdx != other.particleIdx);
 }
 
-ParticleManager::Neighbors ParticleManager::Neighbors::begin() {
+Particles::Neighbors Particles::Neighbors::begin() {
     return *this;
 }
 
-ParticleManager::Neighbors ParticleManager::Neighbors::end() const {
+Particles::Neighbors Particles::Neighbors::end() const {
     return Neighbors(pm);
 }
 
 // Drawing /////////////////
 
-void ParticleManager::loadShader(const char* file) {
+void Particles::loadShader(const char* file) {
     // For cross platform use
     while (!std::filesystem::exists("resources"))
     std::filesystem::current_path(std::filesystem::current_path().parent_path());
@@ -248,17 +248,17 @@ void ParticleManager::loadShader(const char* file) {
         throw std::runtime_error("Failed to load shader");
 }
 
-void ParticleManager::setShaderColor(sf::Color color) {
+void Particles::setShaderColor(sf::Color color) {
     m_shader.setUniform("c", sf::Glsl::Vec4(color));
 }
 
-void ParticleManager::setShaderSmRadius(float smr) {
+void Particles::setShaderSmRadius(float smr) {
     m_shape.setSize(sf::Vector2f(2*smr,2*smr));
     m_shape.setOrigin(smr, smr);
     m_shader.setUniform("r", smr);
 }
 
-void ParticleManager::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void Particles::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     
     if (drawGrid) {
         sf::RectangleShape r(sf::Vector2f(squareWidth,squareHeight));

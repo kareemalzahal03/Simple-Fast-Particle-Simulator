@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include "window.hpp"
-#include "particlemanager.hpp"
-#include "parallelize.hpp"
+#include "particles.hpp"
 #include "mathfunctions.hpp"
 
 class ParticleSimulator {
@@ -27,9 +26,11 @@ private:
 
     void calculateDensities();
 
-    void calculateParticleForces();
+    void calculateForces();
 
-    ParticleManager pm;
+    void calculateVelocities(float delta);
+
+    Particles particles;
 
     const int width;
     const int height;

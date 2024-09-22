@@ -1,7 +1,7 @@
 #include "particlesim.hpp"
 
 ParticleSimulator::ParticleSimulator(int width, int height):
-    width(width), height(height), pm(width, height) {    
+    width(width), height(height), particles(width, height) {    
 
     // Init circle
     circle.setRadius(circleradius);
@@ -17,7 +17,7 @@ void ParticleSimulator::addParticles(int count) {
         sf::Vector2f randomPos(
             float(rand())/RAND_MAX*width,
             float(rand())/RAND_MAX*height);
-        pm.addParticle(randomPos);
+        particles.addParticle(randomPos);
     }
 }
 
@@ -25,44 +25,40 @@ void ParticleSimulator::simStep(float delta) {
     
     calculateDensities();
 
-    calculateParticleForces();
+    calculateForces();
 
-    for (Particle& particle : pm) {
-        sf::Vector2f particle_acceleration = particle.force / particle.density;
-        particle.velocity += particle_acceleration * delta;
-    }
+    calculateVelocities(delta);
 
-    pm.moveParticles(delta,collision);
+    particles.moveParticles(delta,collision);
 }
 
 void ParticleSimulator::calculateDensities() {
 
-    pm.parallel_for_each([this](Particle& particle) {
+    particles.parallel_for_each([this](Particle& p) {
 
         float density = 0.1;
 
-        for (const Particle& other : pm.neighbors(particle)) {
+        for (const Particle& n : particles.neighbors(p)) {
 
-            float dist = Magnitude(particle.getPosition() - other.getPosition());
+            float dist = Magnitude(p.getPosition() - n.getPosition());
 
             density += SpikyKernelPow2(dist, smradius) * mass;
         }
 
-        particle.density = density;
+        p.density = density;
     });
 }
 
-void ParticleSimulator::calculateParticleForces() {
+void ParticleSimulator::calculateForces() {
 
-    pm.parallel_for_each([this](Particle& particle) {
+    particles.parallel_for_each([this](Particle& particle) {
 
         sf::Vector2f pressureForce;
         sf::Vector2f viscosityForce;
         sf::Vector2f gravityForce;
         sf::Vector2f mouseForce;
     
-        // for (auto other = pm.begin(particle.position); other != pm.end(); ++other) {
-        for (const Particle& other : pm.neighbors(particle)) {
+        for (const Particle& other : particles.neighbors(particle)) {
 
             sf::Vector2f dir = particle.getPosition() - other.getPosition();
 
@@ -90,15 +86,14 @@ void ParticleSimulator::calculateParticleForces() {
     });
 }
 
-// void ParticleSimulator::moveParticles(float delta) {
+void ParticleSimulator::calculateVelocities(float delta) {
 
-//     pm.parallel_for_each([this,delta](Particle& particle) {
+    particles.parallel_for_each([this,delta](Particle& particle) {
 
-//         sf::Vector2f particle_acceleration = particle.force / particle.density;
-//         particle.velocity += particle_acceleration * delta;
-//         moveParticle(particle, delta);
-//     });
-// }
+        sf::Vector2f particle_acceleration = particle.force / particle.density;
+        particle.velocity += particle_acceleration * delta;
+    });
+}
 
 void ParticleSimulator::drawContent(sf::RenderWindow& window) {    
     
@@ -106,20 +101,10 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
     sf::CircleShape particleShape(particleRaduis);
     particleShape.setOrigin(particleRaduis/2,particleRaduis/2);
 
-    // for (auto& particle : pm) {
-
-    //     particleShape.setPosition(particle.position);
-    //     particleShape.setFillColor(colorBlend(sf::Color::Cyan,sf::Color::Blue,
-    //         (particle.density-targetdensity)/3));
-
-    //     window.draw(particleShape);
-    // }
-
-    window.draw(pm);
+    window.draw(particles);
 
     if (debug && !isMouseHeld) 
-    // for (auto p = pm.begin(circle.getPosition()); p != pm.end(); ++p) {
-    for (const Particle& p : pm.neighbors(circle.getPosition())) {
+    for (const Particle& p : particles.neighbors(circle.getPosition())) {
 
         particleShape.setPosition(p.getPosition());
         particleShape.setFillColor(sf::Color::Red);
@@ -145,7 +130,7 @@ void ParticleSimulator::drawContent(sf::RenderWindow& window) {
 void ParticleSimulator::setValue(std::string name, float value) {
     if (name == "smradius") {
         smradius = value;
-        pm.setSmRadius(value);
+        particles.setSmRadius(value);
     } else if (name == "viscosity") {
         viscosity = value;
     } else if (name == "gravity") {
